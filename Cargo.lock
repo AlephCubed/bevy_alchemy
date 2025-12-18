@@ -337,6 +337,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_alchemy"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_app",
+ "bevy_auto_plugin",
+ "bevy_ecs",
+ "bevy_reflect",
+ "bevy_time",
+ "immediate_stats",
+]
+
+[[package]]
 name = "bevy_android"
 version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1347,19 +1360,6 @@ dependencies = [
  "bevy_macro_utils",
  "quote",
  "syn 2.0.111",
-]
-
-[[package]]
-name = "bevy_status_effects"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_app",
- "bevy_auto_plugin",
- "bevy_ecs",
- "bevy_reflect",
- "bevy_time",
- "immediate_stats",
 ]
 
 [[package]]

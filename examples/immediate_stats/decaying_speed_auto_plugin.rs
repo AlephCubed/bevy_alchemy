@@ -5,8 +5,8 @@
 //! This uses [`EffectMode::Merge`], which prevents having multiple of the effect applied at the same time (no 10x speed multiplier for you).
 
 use bevy::prelude::*;
+use bevy_alchemy::*;
 use bevy_auto_plugin::prelude::{AutoPlugin, auto_component, auto_system};
-use bevy_status_effects::*;
 use immediate_stats::*;
 
 fn main() {

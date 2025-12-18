@@ -7,7 +7,7 @@
 //! There is a second version of this example, which uses Bevy Auto Plugin.
 
 use bevy::prelude::*;
-use bevy_status_effects::*;
+use bevy_alchemy::*;
 use immediate_stats::*;
 
 fn main() {

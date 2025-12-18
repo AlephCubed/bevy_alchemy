@@ -1,6 +1,6 @@
 //! Tests the behaviour of timers for each [`TimerMergeMode`].
 
-use bevy_status_effects::*;
+use bevy_alchemy::*;
 
 #[test]
 fn merge_replace() {

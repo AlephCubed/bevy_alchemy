@@ -2,7 +2,7 @@
 //! Todo Add UI.
 
 use bevy::prelude::*;
-use bevy_status_effects::{
+use bevy_alchemy::{
     Delay, EffectBundle, EffectCommandsExt, EffectTimer, Effecting, Lifetime, StatusEffectPlugin,
 };
 

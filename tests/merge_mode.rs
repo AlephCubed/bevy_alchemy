@@ -1,7 +1,7 @@
 //! Tests the behaviour of adding effects with each [`EffectMode`].
 
+use bevy_alchemy::*;
 use bevy_ecs::prelude::*;
-use bevy_status_effects::*;
 use bevy_time::*;
 use std::time::Duration;
 

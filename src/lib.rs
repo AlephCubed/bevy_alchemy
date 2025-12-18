@@ -15,7 +15,7 @@ pub use command::*;
 pub use relation::*;
 pub use timer::*;
 
-/// Setup required types and systems for `bevy_status_effects`.
+/// Setup required types and systems for `bevy_alchemy`.
 pub struct StatusEffectPlugin;
 
 impl Plugin for StatusEffectPlugin {
