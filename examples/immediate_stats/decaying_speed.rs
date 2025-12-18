@@ -44,7 +44,7 @@ fn on_space_pressed(
         return;
     }
 
-    println!("Applying Effect");
+    info!("Applying Effect");
     commands.entity(*target).with_effect(EffectBundle {
         mode: EffectMode::Merge, // Block having multiple of effect stacked on a single target.
         lifetime: Some(Lifetime::from_seconds(2.0)), // The duration of the effect.
@@ -73,6 +73,6 @@ fn apply_speed_boost(
             lifetime.timer.fraction_remaining(),
         );
 
-        println!("The target now has {} movement speed.", speed.0.total());
+        info!("The target now has {} movement speed.", speed.0.total());
     }
 }

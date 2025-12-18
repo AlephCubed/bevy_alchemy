@@ -1,4 +1,4 @@
-//! Relationship-based status effects for bevy.
+#![doc = include_str!("../README.md")]
 
 mod bundle;
 mod command;

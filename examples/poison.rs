@@ -38,7 +38,7 @@ fn on_space_pressed(
         return;
     }
 
-    println!("Applying Effect");
+    info!("Applying Effect");
     commands.entity(*target).with_effect(EffectBundle {
         lifetime: Some(Lifetime::from_seconds(4.0)), // The duration of the effect.
         delay: Some(Delay::from_seconds(1.0)),       // The time between damage ticks.
@@ -63,8 +63,8 @@ fn deal_poison_damage(
             continue;
         };
 
-        // Otherwise, just apply the damage.
+        // Otherwise, apply the damage.
         health.0 -= poison.damage;
-        println!("The target now has {} health.", health.0);
+        info!("The target now has {} health.", health.0);
     }
 }
