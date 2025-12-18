@@ -1,3 +1,5 @@
+//! Tests the behaviour of timers for each [`TimerMergeMode`].
+
 use bevy_status_effects::*;
 
 #[test]

@@ -1,22 +1,21 @@
 //! Relationship-based status effects for bevy.
 
-mod hook;
+mod bundle;
+mod command;
 mod relation;
 mod timer;
 
 use bevy_app::{App, Plugin, PreUpdate};
 use bevy_ecs::prelude::*;
+use bevy_reflect::Reflect;
 use bevy_reflect::prelude::ReflectDefault;
-use bevy_reflect::{Reflect, reflect_trait};
 
-pub use bevy_status_effects_macros::StatusEffect;
-pub use hook::*;
+pub use bundle::*;
+pub use command::*;
 pub use relation::*;
 pub use timer::*;
 
-#[doc(hidden)]
-pub use bevy_app::Startup as __Startup;
-
+/// Setup required types and systems for `bevy_status_effects`.
 pub struct StatusEffectPlugin;
 
 impl Plugin for StatusEffectPlugin {
@@ -31,9 +30,6 @@ impl Plugin for StatusEffectPlugin {
     }
 }
 
-#[reflect_trait]
-pub trait StatusEffect {}
-
 /// Describes the logic used when multiple of the same effect are applied to the same entity.
 #[derive(Component, Reflect, Eq, PartialEq, Debug, Default, Copy, Clone)]
 #[reflect(Component, PartialEq, Debug, Default, Clone)]
@@ -41,8 +37,10 @@ pub enum EffectMode {
     /// Multiple of the same effect can exist at once.
     #[default]
     Stack,
-    /// When an effect is spawned, any existing effects are replaced (despawned).
+    /// When an effect is added, it will replace matching effects.
     Replace,
-    // Todo
-    // Merge,
+    /// When an effect is added, it will merge with matching effects.
+    ///
+    /// Currently, this means that timers ([`Lifetime`] and [`Delay`]), will merge depending on their [`TimerMergeMode`].
+    Merge,
 }
