@@ -45,31 +45,33 @@ impl<'a> EffectSpawner<'a> {
     }
 }
 
-fn insert_effect<B: Bundle>(mut entity: EntityWorldMut, effect: AddEffectCommand<B>) {
-    entity.insert((
-        Effecting(effect.target),
-        effect.bundle.name,
-        effect.bundle.mode,
-        effect.bundle.bundle,
-    ));
-
-    if let Some(lifetime) = effect.bundle.lifetime {
-        entity.insert(lifetime);
+impl<B: Bundle> AddEffectCommand<B> {
+    fn spawn(self, world: &mut World) {
+        self.insert(world.spawn_empty());
     }
 
-    if let Some(delay) = effect.bundle.delay {
-        entity.insert(delay);
-    }
-}
+    fn insert(self, mut entity: EntityWorldMut) {
+        entity.insert((
+            Effecting(self.target),
+            self.bundle.name,
+            self.bundle.mode,
+            self.bundle.bundle,
+        ));
 
-fn spawn_effect<B: Bundle>(world: &mut World, effect: AddEffectCommand<B>) {
-    insert_effect(world.spawn(()), effect);
+        if let Some(lifetime) = self.bundle.lifetime {
+            entity.insert(lifetime);
+        }
+
+        if let Some(delay) = self.bundle.delay {
+            entity.insert(delay);
+        }
+    }
 }
 
 impl<B: Bundle> Command for AddEffectCommand<B> {
     fn apply(mut self, world: &mut World) -> () {
         if self.bundle.mode == EffectMode::Stack {
-            spawn_effect(world, self);
+            self.spawn(world);
             return;
         }
 
@@ -77,7 +79,7 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
             .get::<EffectedBy>(self.target)
             .map(|e| e.collection().clone())
         else {
-            spawn_effect(world, self);
+            self.spawn(world);
             return;
         };
 
@@ -104,7 +106,7 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
         });
 
         let Some(old_entity) = old_entity else {
-            spawn_effect(world, self);
+            self.spawn(world);
             return;
         };
 
@@ -122,7 +124,7 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
             }
         }
 
-        insert_effect(world.entity_mut(old_entity), self);
+        self.insert(world.entity_mut(old_entity));
     }
 }
 
