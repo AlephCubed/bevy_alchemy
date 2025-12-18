@@ -39,13 +39,11 @@ fn on_space_pressed(
     }
 
     println!("Applying Effect");
-    commands.entity(*target).with_effects(|effects| {
-        effects.spawn(EffectBundle {
-            lifetime: Some(Lifetime::from_seconds(4.0)), // The duration of the effect.
-            delay: Some(Delay::from_seconds(1.0)),       // The time between damage ticks.
-            bundle: Poison { damage: 1 },                // The amount of damage to apply per tick.
-            ..default()
-        });
+    commands.entity(*target).with_effect(EffectBundle {
+        lifetime: Some(Lifetime::from_seconds(4.0)), // The duration of the effect.
+        delay: Some(Delay::from_seconds(1.0)),       // The time between damage ticks.
+        bundle: Poison { damage: 1 },                // The amount of damage to apply per tick.
+        ..default()
     });
 }
 
