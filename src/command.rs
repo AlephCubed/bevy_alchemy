@@ -1,3 +1,4 @@
+use crate::bundle::EffectBundle;
 use crate::{Delay, EffectMode, EffectTimer, EffectedBy, Effecting, Lifetime};
 use bevy_ecs::prelude::*;
 
@@ -8,41 +9,6 @@ pub struct AddEffectCommand<B: Bundle> {
     pub target: Entity,
     /// The effect to apply.
     pub bundle: EffectBundle<B>,
-}
-
-/// A "bundle" of components/settings used when applying an effect.
-///
-/// Note that this doesn't implement [`Bundle`] due to technical limitations.
-#[derive(Default)]
-pub struct EffectBundle<B: Bundle> {
-    /// The name/ID of the effect. Effects with different IDs have no effect on one another.
-    pub name: Name,
-    /// Describes the logic used when new effect collides with an existing one.
-    pub mode: EffectMode,
-    /// The duration of the effect.
-    #[doc(alias = "duration")]
-    pub lifetime: Option<Lifetime>,
-    /// Repeating timer used for the delay between effect applications.
-    pub delay: Option<Delay>,
-    /// Components that will be added to the effect. This is where the actual effect components get added.
-    pub bundle: B,
-}
-
-/// Uses commands to apply effects to a specific target entity.
-pub struct EffectSpawner<'a> {
-    target: Entity,
-    commands: &'a mut Commands<'a, 'a>,
-}
-
-impl<'a> EffectSpawner<'a> {
-    /// Applies an effect to a target entity.
-    /// This *might* spawn a new entity, depending on what effects are already applied to the target.
-    pub fn spawn<B: Bundle>(&mut self, bundle: EffectBundle<B>) {
-        self.commands.queue(AddEffectCommand {
-            target: self.target,
-            bundle,
-        });
-    }
 }
 
 impl<B: Bundle> AddEffectCommand<B> {
@@ -125,6 +91,23 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
         }
 
         self.insert(world.entity_mut(old_entity));
+    }
+}
+
+/// Uses commands to apply effects to a specific target entity.
+pub struct EffectSpawner<'a> {
+    target: Entity,
+    commands: &'a mut Commands<'a, 'a>,
+}
+
+impl<'a> EffectSpawner<'a> {
+    /// Applies an effect to a target entity.
+    /// This *might* spawn a new entity, depending on what effects are already applied to the target.
+    pub fn spawn<B: Bundle>(&mut self, bundle: EffectBundle<B>) {
+        self.commands.queue(AddEffectCommand {
+            target: self.target,
+            bundle,
+        });
     }
 }
 

@@ -1,5 +1,6 @@
 //! Relationship-based status effects for bevy.
 
+mod bundle;
 mod command;
 mod relation;
 mod timer;
@@ -9,6 +10,7 @@ use bevy_ecs::prelude::*;
 use bevy_reflect::Reflect;
 use bevy_reflect::prelude::ReflectDefault;
 
+pub use bundle::*;
 pub use command::*;
 pub use relation::*;
 pub use timer::*;
