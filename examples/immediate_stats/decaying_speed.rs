@@ -23,7 +23,7 @@ fn main() {
 #[derive(Component, StatContainer)]
 struct MovementSpeed(Stat);
 
-/// Applies a 2x speed boost, which decreases throughout its duration.
+/// Applies a speed boost, which decreases throughout its duration.
 #[derive(Component, Default)]
 struct DecayingSpeed {
     start_speed_boost: Modifier,
@@ -45,18 +45,15 @@ fn on_space_pressed(
     }
 
     println!("Applying Effect");
-    commands.add_effect(
-        *target,
-        EffectBundle {
-            mode: EffectMode::Merge, // Block having multiple of effect stacked on a single target.
-            lifetime: Some(Lifetime::from_seconds(2.0)), // The duration of the effect.
-            bundle: DecayingSpeed {
-                // Start with double move speed.
-                start_speed_boost: Modifier::from_multiplier(2.0),
-            },
-            ..default()
+    commands.entity(*target).with_effect(EffectBundle {
+        mode: EffectMode::Merge, // Block having multiple of effect stacked on a single target.
+        lifetime: Some(Lifetime::from_seconds(2.0)), // The duration of the effect.
+        bundle: DecayingSpeed {
+            // Start with double move speed.
+            start_speed_boost: Modifier::from_multiplier(2.0),
         },
-    );
+        ..default()
+    });
 }
 
 /// Applies the effect to the target. Because of how Immediate Stats works, this needs to run every frame.

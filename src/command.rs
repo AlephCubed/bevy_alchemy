@@ -12,7 +12,7 @@ pub struct AddEffectCommand<B: Bundle> {
 
 /// A "bundle" of components/settings used when applying an effect.
 ///
-/// Not that this doesn't implement [`Bundle`] due to technical limitations.
+/// Note that this doesn't implement [`Bundle`] due to technical limitations.
 #[derive(Default)]
 pub struct EffectBundle<B: Bundle> {
     /// The name/ID of the effect. Effects with different IDs have no effect on one another.
@@ -26,6 +26,23 @@ pub struct EffectBundle<B: Bundle> {
     pub delay: Option<Delay>,
     /// Components that will be added to the effect. This is where the actual effect components get added.
     pub bundle: B,
+}
+
+/// Uses commands to apply effects to a specific target entity.
+pub struct EffectSpawner<'a> {
+    target: Entity,
+    commands: &'a mut Commands<'a, 'a>,
+}
+
+impl<'a> EffectSpawner<'a> {
+    /// Applies an effect to a target entity.
+    /// This *might* spawn a new entity, depending on what effects are already applied to the target.
+    pub fn spawn<B: Bundle>(&mut self, bundle: EffectBundle<B>) {
+        self.commands.queue(AddEffectCommand {
+            target: self.target,
+            bundle,
+        });
+    }
 }
 
 fn insert_effect<B: Bundle>(mut entity: EntityWorldMut, effect: AddEffectCommand<B>) {
@@ -109,16 +126,28 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
     }
 }
 
-/// An extension trait for adding effect methods to [`Commands`].
-pub trait AddEffectExt {
-    /// Applies an effect to a target entity.
-    /// This *might* spawn a new entity, depending on what effects are already applied to the target.
-    fn add_effect<B: Bundle>(&mut self, target: Entity, bundle: EffectBundle<B>) -> &mut Self;
+/// An extension trait for adding effect methods to [`EntityCommands`].
+pub trait EffectCommandsExt {
+    /// Applies an effect to this entity.
+    /// This *might* spawn a new entity, depending on what effects are already applied to it.
+    fn with_effect<B: Bundle>(&mut self, bundle: EffectBundle<B>) -> &mut Self;
+
+    /// Applies effects to this entity by taking a function that operates on a [`EffectSpawner`].
+    fn with_effects(&mut self, f: impl FnOnce(&mut EffectSpawner)) -> &mut Self;
 }
 
-impl AddEffectExt for Commands<'_, '_> {
-    fn add_effect<B: Bundle>(&mut self, target: Entity, bundle: EffectBundle<B>) -> &mut Self {
-        self.queue(AddEffectCommand { target, bundle });
+impl EffectCommandsExt for EntityCommands<'_> {
+    fn with_effect<B: Bundle>(&mut self, bundle: EffectBundle<B>) -> &mut Self {
+        let target = self.id();
+        self.commands().queue(AddEffectCommand { target, bundle });
+        self
+    }
+
+    fn with_effects(&mut self, f: impl FnOnce(&mut EffectSpawner)) -> &mut Self {
+        f(&mut EffectSpawner {
+            target: self.id(),
+            commands: &mut self.commands(),
+        });
         self
     }
 }

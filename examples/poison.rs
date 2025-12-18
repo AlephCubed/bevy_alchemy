@@ -3,7 +3,7 @@
 
 use bevy::prelude::*;
 use bevy_status_effects::{
-    AddEffectExt, Delay, EffectBundle, EffectTimer, Effecting, Lifetime, StatusEffectPlugin,
+    Delay, EffectBundle, EffectCommandsExt, EffectTimer, Effecting, Lifetime, StatusEffectPlugin,
 };
 
 fn main() {
@@ -39,15 +39,14 @@ fn on_space_pressed(
     }
 
     println!("Applying Effect");
-    commands.add_effect(
-        *target,
-        EffectBundle {
+    commands.entity(*target).with_effects(|effects| {
+        effects.spawn(EffectBundle {
             lifetime: Some(Lifetime::from_seconds(4.0)), // The duration of the effect.
             delay: Some(Delay::from_seconds(1.0)),       // The time between damage ticks.
             bundle: Poison { damage: 1 },                // The amount of damage to apply per tick.
             ..default()
-        },
-    );
+        });
+    });
 }
 
 /// Runs every frame and deals the poison damage.

@@ -5,7 +5,7 @@
 //! This uses [`EffectMode::Merge`], which prevents having multiple of the effect applied at the same time (no 10x speed multiplier for you).
 
 use bevy::prelude::*;
-use bevy_auto_plugin::modes::global::prelude::{AutoPlugin, auto_component, auto_system};
+use bevy_auto_plugin::prelude::{AutoPlugin, auto_component, auto_system};
 use bevy_status_effects::*;
 use immediate_stats::*;
 
@@ -49,18 +49,15 @@ fn on_space_pressed(
     }
 
     println!("Applying Effect");
-    commands.add_effect(
-        *target,
-        EffectBundle {
-            mode: EffectMode::Merge, // Block having multiple of effect stacked on a single target.
-            lifetime: Some(Lifetime::from_seconds(2.0)), // The duration of the effect.
-            bundle: DecayingSpeed {
-                // Start with double move speed.
-                start_speed_boost: Modifier::from_multiplier(2.0),
-            },
-            ..default()
+    commands.entity(*target).with_effect(EffectBundle {
+        mode: EffectMode::Merge, // Block having multiple of effect stacked on a single target.
+        lifetime: Some(Lifetime::from_seconds(2.0)), // The duration of the effect.
+        bundle: DecayingSpeed {
+            // Start with double move speed.
+            start_speed_boost: Modifier::from_multiplier(2.0),
         },
-    );
+        ..default()
+    });
 }
 
 /// Applies the effect to the target. Because of how Immediate Stats works, this needs to run every frame.
