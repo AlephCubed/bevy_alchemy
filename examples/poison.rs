@@ -3,12 +3,12 @@
 
 use bevy::prelude::*;
 use bevy_alchemy::{
-    Delay, EffectBundle, EffectCommandsExt, EffectTimer, Effecting, Lifetime, StatusEffectPlugin,
+    AlchemyPlugin, Delay, EffectBundle, EffectCommandsExt, EffectTimer, Effecting, Lifetime,
 };
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, StatusEffectPlugin))
+        .add_plugins((DefaultPlugins, AlchemyPlugin))
         .add_systems(Startup, init_scene)
         .add_systems(Update, (on_space_pressed, deal_poison_damage))
         .run();

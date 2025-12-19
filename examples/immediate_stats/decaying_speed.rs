@@ -12,7 +12,7 @@ use immediate_stats::*;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, StatusEffectPlugin, ImmediateStatsPlugin))
+        .add_plugins((DefaultPlugins, AlchemyPlugin, ImmediateStatsPlugin))
         .add_plugins(ResetComponentPlugin::<MovementSpeed>::new())
         .add_systems(Startup, init_scene)
         .add_systems(Update, (on_space_pressed, apply_speed_boost))

@@ -7,8 +7,8 @@ use std::time::Duration;
 fn merge_replace() {
     let first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Replace);
     let second = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Replace);
-    let mut result = second.clone();
-    result.merge(&first);
+    let mut result = first.clone();
+    result.merge(&second);
 
     assert_eq!(result, second);
 }
@@ -17,8 +17,8 @@ fn merge_replace() {
 fn merge_inherit() {
     let first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Inherit);
     let second = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Inherit);
-    let mut result = second.clone();
-    result.merge(&first);
+    let mut result = first.clone();
+    result.merge(&second);
 
     assert_eq!(result, first);
 }
@@ -27,8 +27,8 @@ fn merge_inherit() {
 fn merge_fraction() {
     let first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Fraction);
     let second = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Fraction);
-    let mut result = second.clone();
-    result.merge(&first);
+    let mut result = first.clone();
+    result.merge(&second);
 
     assert_eq!(result, second);
 }

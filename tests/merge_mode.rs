@@ -8,9 +8,20 @@ use std::time::Duration;
 #[derive(Component, Debug, Eq, PartialEq, Default)]
 struct MyEffect(u8);
 
+fn init_world() -> World {
+    let mut world = World::new();
+
+    let mut registry = EffectMergeRegistry::default();
+    register_timer_merge_functions(&mut registry);
+
+    world.insert_resource(registry);
+
+    world
+}
+
 #[test]
 fn stack() {
-    let mut world = World::new();
+    let mut world = init_world();
 
     let target = world.spawn_empty().id();
 
@@ -40,7 +51,7 @@ fn stack() {
 
 #[test]
 fn replace() {
-    let mut world = World::new();
+    let mut world = init_world();
 
     let target = world.spawn_empty().id();
 
@@ -69,7 +80,7 @@ fn replace() {
 
 #[test]
 fn mixed() {
-    let mut world = World::new();
+    let mut world = init_world();
 
     let target = world.spawn_empty().id();
 
@@ -109,7 +120,7 @@ fn mixed() {
 
 #[test]
 fn timer_merge_replace() {
-    let mut world = World::new();
+    let mut world = init_world();
 
     let target = world.spawn_empty().id();
     let second_lifetime = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Replace);
@@ -136,7 +147,7 @@ fn timer_merge_replace() {
 
 #[test]
 fn timer_merge_inherit() {
-    let mut world = World::new();
+    let mut world = init_world();
 
     let target = world.spawn_empty().id();
     let first_delay = Delay::from_seconds(1.0).with_mode(TimerMergeMode::Inherit);
@@ -163,7 +174,7 @@ fn timer_merge_inherit() {
 
 #[test]
 fn timer_merge_fraction() {
-    let mut world = World::new();
+    let mut world = init_world();
 
     let target = world.spawn_empty().id();
     let mut first_timer = Timer::from_seconds(2.0, TimerMode::Once);
@@ -201,7 +212,7 @@ fn timer_merge_fraction() {
 
 #[test]
 fn timer_merge_max() {
-    let mut world = World::new();
+    let mut world = init_world();
 
     let target = world.spawn_empty().id();
     let max = Delay::from_seconds(3.0).with_mode(TimerMergeMode::Max);

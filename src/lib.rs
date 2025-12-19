@@ -2,23 +2,25 @@
 
 mod bundle;
 mod command;
+mod registry;
 mod relation;
 mod timer;
 
-use bevy_app::{App, Plugin, PreUpdate};
+use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 use bevy_reflect::Reflect;
 use bevy_reflect::prelude::ReflectDefault;
 
 pub use bundle::*;
 pub use command::*;
+pub use registry::*;
 pub use relation::*;
 pub use timer::*;
 
 /// Setup required types and systems for `bevy_alchemy`.
-pub struct StatusEffectPlugin;
+pub struct AlchemyPlugin;
 
-impl Plugin for StatusEffectPlugin {
+impl Plugin for AlchemyPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<EffectMode>()
             .register_type::<Effecting>()
@@ -26,7 +28,8 @@ impl Plugin for StatusEffectPlugin {
             .register_type::<Lifetime>()
             .register_type::<Delay>()
             .register_type::<TimerMergeMode>()
-            .add_systems(PreUpdate, (despawn_finished_lifetimes, tick_delay).chain());
+            .init_resource::<EffectMergeRegistry>()
+            .add_plugins(TimerPlugin);
     }
 }
 

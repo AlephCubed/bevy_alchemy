@@ -11,7 +11,7 @@ use immediate_stats::*;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, StatusEffectPlugin, ImmediateStatsPlugin))
+        .add_plugins((DefaultPlugins, AlchemyPlugin, ImmediateStatsPlugin))
         .add_plugins(DecayingSpeedPlugin)
         .run();
 }

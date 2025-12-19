@@ -1,8 +1,11 @@
 use crate::bundle::EffectBundle;
-use crate::{Delay, EffectMode, EffectTimer, EffectedBy, Effecting, Lifetime};
+use crate::registry::{EffectMergeFn, EffectMergeRegistry};
+use crate::{EffectMode, EffectedBy, Effecting};
+use bevy_ecs::entity_disabling::Disabled;
 use bevy_ecs::prelude::*;
 use bevy_ecs::ptr::MovingPtr;
 use bevy_ecs::spawn::SpawnableList;
+use bevy_log::warn_once;
 
 /// Applies an effect to a target entity.
 /// This *might* spawn a new entity, depending on what effects are already applied to the target.
@@ -14,8 +17,18 @@ pub struct AddEffectCommand<B: Bundle> {
 }
 
 impl<B: Bundle> AddEffectCommand<B> {
-    fn spawn(self, world: &mut World) {
-        self.insert(world.spawn_empty());
+    fn spawn(self, world: &mut World) -> Entity {
+        let entity = world.spawn_empty();
+        let id = entity.id();
+        self.insert(entity);
+        id
+    }
+
+    fn spawn_temp(self, world: &mut World) -> Entity {
+        let entity = world.spawn(Disabled);
+        let id = entity.id();
+        self.insert(entity);
+        id
     }
 
     fn insert(self, mut entity: EntityWorldMut) {
@@ -34,10 +47,43 @@ impl<B: Bundle> AddEffectCommand<B> {
             entity.insert(delay);
         }
     }
+
+    fn merge(self, world: &mut World, old_entity: Entity) {
+        if !world.contains_resource::<EffectMergeRegistry>() {
+            warn_once!(
+                "No `EffectComponentMergeRegistry` found. Did you forget to add the `StatusEffectPlugin`?"
+            );
+            return;
+        }
+
+        let incoming = self.spawn_temp(world);
+
+        let incoming_entity = world.entity(incoming);
+        let archetype = incoming_entity.archetype();
+        let registry = world.resource::<EffectMergeRegistry>();
+
+        let merge_functions: Vec<EffectMergeFn> = archetype
+            .components()
+            .iter()
+            .filter_map(|component_id| {
+                world
+                    .components()
+                    .get_info(*component_id)
+                    .and_then(|info| info.type_id())
+                    .and_then(|id| registry.merges.get(&id).map(|f| *f))
+            })
+            .collect();
+
+        for merge in merge_functions {
+            merge(world, old_entity, incoming);
+        }
+
+        world.despawn(incoming);
+    }
 }
 
 impl<B: Bundle> Command for AddEffectCommand<B> {
-    fn apply(mut self, world: &mut World) -> () {
+    fn apply(self, world: &mut World) -> () {
         if self.bundle.mode == EffectMode::Stack {
             self.spawn(world);
             return;
@@ -78,21 +124,11 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
             return;
         };
 
-        if self.bundle.mode == EffectMode::Merge {
-            if let Some(lifetime) = &mut self.bundle.lifetime {
-                if let Some(old_lifetime) = world.get::<Lifetime>(old_entity).cloned() {
-                    lifetime.merge(&old_lifetime)
-                }
-            }
-
-            if let Some(delay) = &mut self.bundle.delay {
-                if let Some(old_delay) = world.get::<Delay>(old_entity).cloned() {
-                    delay.merge(&old_delay)
-                }
-            }
+        match self.bundle.mode {
+            EffectMode::Stack => unreachable!(),
+            EffectMode::Replace => self.insert(world.entity_mut(old_entity)),
+            EffectMode::Merge => self.merge(world, old_entity),
         }
-
-        self.insert(world.entity_mut(old_entity));
     }
 }
 

@@ -344,6 +344,7 @@ dependencies = [
  "bevy_app",
  "bevy_auto_plugin",
  "bevy_ecs",
+ "bevy_log",
  "bevy_reflect",
  "bevy_time",
  "immediate_stats",
