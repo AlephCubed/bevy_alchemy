@@ -104,7 +104,7 @@ macro_rules! impl_effect_timer {
 pub struct Lifetime {
     /// Tracks the elapsed time. Once the timer is finished, the entity will be despawned.
     pub timer: Timer,
-    /// Controls the merge behaviour when an effect is [replaced](EffectMode::Replace).
+    /// Controls the merge behaviour when an effect is [replaced](crate::EffectMode::Replace).
     pub mode: TimerMergeMode,
 }
 
@@ -125,7 +125,7 @@ impl Default for Lifetime {
 pub struct Delay {
     /// Tracks the elapsed time.
     pub timer: Timer,
-    /// Controls the merge behaviour when an effect is [replaced](EffectMode::Replace).
+    /// Controls the merge behaviour when an effect is [replaced](crate::EffectMode::Replace).
     pub mode: TimerMergeMode,
 }
 
@@ -140,12 +140,12 @@ impl Default for Delay {
     }
 }
 
-/// Controls the merge behaviour of a timer when it's effect is [merged](EffectMode::Merge).
+/// Controls the merge behaviour of a timer when it's effect is [merged](crate::EffectMode::Merge).
 #[derive(Reflect, Eq, PartialEq, Debug, Copy, Clone)]
 #[reflect(PartialEq, Debug, Clone)]
 pub enum TimerMergeMode {
     /// The new effect's time will be used, ignoring the old one.
-    /// Same as [`EffectMode::Replace`], but on a per-timer basis.
+    /// Same as [`crate::EffectMode::Replace`], but on a per-timer basis.
     Replace,
     /// The old effect's time will be used, ignoring the new one.
     Inherit,

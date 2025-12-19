@@ -9,6 +9,9 @@ use bevy_log::warn_once;
 
 /// Applies an effect to a target entity.
 /// This *might* spawn a new entity, depending on what effects are already applied to the target.
+///
+/// This is normally used via [`with_effect`](EffectCommandsExt::with_effect)
+/// or related spawners ([`EffectedBy::spawn`](SpawnRelated::spawn)).
 pub struct AddEffectCommand<B: Bundle> {
     /// The entity to apply the effect to.
     pub target: Entity,
@@ -145,14 +148,24 @@ impl<B: Bundle> SpawnableList<Effecting> for EffectBundle<B> {
 }
 
 /// Uses commands to apply effects to a specific target entity.
+///
+/// This is normally used during [`with_effects`](EffectCommandsExt::with_effects).
+///
+/// # Example
+#[doc = include_str!("../docs/with_effects_example.md")]
 pub struct EffectSpawner<'a> {
     target: Entity,
     commands: &'a mut Commands<'a, 'a>,
 }
 
 impl<'a> EffectSpawner<'a> {
-    /// Applies an effect to a target entity.
+    /// Applies an effect to the target entity.
     /// This *might* spawn a new entity, depending on what effects are already applied to the target.
+    ///
+    /// This is normally used during [`with_effects`](EffectCommandsExt::with_effects).
+    ///
+    /// # Example
+    #[doc = include_str!("../docs/with_effects_example.md")]
     pub fn spawn<B: Bundle>(&mut self, bundle: EffectBundle<B>) {
         self.commands.queue(AddEffectCommand {
             target: self.target,
@@ -165,9 +178,19 @@ impl<'a> EffectSpawner<'a> {
 pub trait EffectCommandsExt {
     /// Applies an effect to this entity.
     /// This *might* spawn a new entity, depending on what effects are already applied to it.
+    ///
+    /// For applying multiple effects, see [`with_effects`](Self::with_effects).
+    ///
+    /// # Example
+    #[doc = include_str!("../docs/with_effect_example.md")]
     fn with_effect<B: Bundle>(&mut self, bundle: EffectBundle<B>) -> &mut Self;
 
     /// Applies effects to this entity by taking a function that operates on a [`EffectSpawner`].
+    ///
+    /// For applying a single effect, see [`with_effect`](Self::with_effect).
+    ///
+    /// # Example
+    #[doc = include_str!("../docs/with_effects_example.md")]
     fn with_effects(&mut self, f: impl FnOnce(&mut EffectSpawner)) -> &mut Self;
 }
 

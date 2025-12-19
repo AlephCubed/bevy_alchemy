@@ -33,7 +33,7 @@ impl Plugin for AlchemyPlugin {
     }
 }
 
-/// Describes the logic used when multiple of the same effect are applied to the same entity.
+/// Describes the logic used when multiple of the same effect are applied to an entity.
 #[derive(Component, Reflect, Eq, PartialEq, Debug, Default, Copy, Clone)]
 #[reflect(Component, PartialEq, Debug, Default, Clone)]
 pub enum EffectMode {
@@ -43,7 +43,7 @@ pub enum EffectMode {
     /// When an effect is added, it will replace matching effects.
     Replace,
     /// When an effect is added, it will merge with matching effects.
-    ///
-    /// Currently, this means that timers ([`Lifetime`] and [`Delay`]), will merge depending on their [`TimerMergeMode`].
+    /// By default, the incoming effect will replace the old one, same as [`Replace`](Self::Replace).
+    /// This can be configured on a per-component basis using the [`EffectMergeRegistry`] resource.
     Merge,
 }
