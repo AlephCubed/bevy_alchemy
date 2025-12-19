@@ -96,6 +96,7 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
     }
 }
 
+// Todo This is probably bad practice/has larger performance cost.
 impl<B: Bundle> SpawnableList<Effecting> for EffectBundle<B> {
     fn spawn(this: MovingPtr<'_, Self>, world: &mut World, target: Entity) {
         let bundle = this.read();
@@ -103,7 +104,7 @@ impl<B: Bundle> SpawnableList<Effecting> for EffectBundle<B> {
     }
 
     fn size_hint(&self) -> usize {
-        1
+        0
     }
 }
 

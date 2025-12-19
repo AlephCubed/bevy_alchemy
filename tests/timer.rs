@@ -1,6 +1,7 @@
 //! Tests the behaviour of timers for each [`TimerMergeMode`].
 
 use bevy_alchemy::*;
+use std::time::Duration;
 
 #[test]
 fn merge_replace() {
@@ -43,4 +44,16 @@ fn merge_max() {
     result.merge(&second);
 
     assert_eq!(result, second);
+}
+
+#[test]
+fn merge_sum() {
+    let first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Sum);
+    let mut second = Lifetime::from_seconds(3.0).with_mode(TimerMergeMode::Sum);
+    second.merge(&first);
+
+    let mut result = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Sum);
+    result.merge(&second);
+
+    assert_eq!(result.timer.duration(), Duration::from_secs_f32(6.0));
 }

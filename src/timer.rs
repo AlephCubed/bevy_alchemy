@@ -45,15 +45,19 @@ macro_rules! impl_effect_timer {
                         let fraction = other.timer.fraction();
                         let duration = self.timer.duration().as_secs_f32();
                         self.timer
-                            .set_elapsed(Duration::from_secs_f32(fraction * duration))
+                            .set_elapsed(Duration::from_secs_f32(fraction * duration));
                     }
                     TimerMergeMode::Max => {
                         let old = other.timer.remaining_secs();
                         let new = self.timer.remaining_secs();
 
                         if old > new {
-                            self.timer = other.timer.clone()
+                            self.timer = other.timer.clone();
                         }
+                    }
+                    TimerMergeMode::Sum => {
+                        self.timer
+                            .set_duration(other.timer.duration() + self.timer.duration());
                     }
                 }
             }
@@ -117,7 +121,8 @@ pub enum TimerMergeMode {
     Fraction,
     /// The timer with the larger time remaining will be used.
     Max,
-    // Todo Sum.
+    /// The timers' durations will be added together.
+    Sum,
 }
 
 pub(super) fn despawn_finished_lifetimes(
