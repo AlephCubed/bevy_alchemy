@@ -17,6 +17,7 @@ impl Plugin for TimerPlugin {
     }
 }
 
+/// Registers the default merge logic for [`Lifetime`] and [`Delay`].
 pub fn register_timer_merge_functions(registry: &mut EffectMergeRegistry) {
     registry
         .register::<Lifetime>(merge_timer::<Lifetime>)
