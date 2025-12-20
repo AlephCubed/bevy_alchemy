@@ -12,13 +12,12 @@ use std::collections::HashMap;
 /// #[derive(Component, Clone)]
 /// struct MyEffect(f32);
 ///
-/// fn merge_my_effect(world: &mut World, new: Entity, outgoing: Entity) {
-///     let outgoing = world.get::<MyEffect>(outgoing).unwrap().clone();
-///     let mut new = world.get_mut::<MyEffect>(new).unwrap();
-///     new.0 += outgoing.0;
+/// fn merge_my_effect(mut new: EntityWorldMut, outgoing: Entity) {
+///     let outgoing = new.world().get::<MyEffect>(outgoing).unwrap().clone();
+///     new.get_mut::<MyEffect>().unwrap().0 += outgoing.0;
 /// }
 /// ```
-pub type EffectMergeFn = fn(world: &mut World, new: Entity, outgoing: Entity);
+pub type EffectMergeFn = fn(new: EntityWorldMut, outgoing: Entity);
 
 /// Stores the effect merge logic for each registered component.
 /// New components can be registered by providing a [`EffectMergeFn`] to the [`register`](EffectMergeRegistry::register) method.
@@ -39,10 +38,9 @@ pub type EffectMergeFn = fn(world: &mut World, new: Entity, outgoing: Entity);
 ///         .register::<MyEffect>(merge_my_effect);
 /// }
 ///
-/// fn merge_my_effect(world: &mut World, new: Entity, outgoing: Entity) {
-///     let outgoing = world.get::<MyEffect>(outgoing).unwrap().clone();
-///     let mut new = world.get_mut::<MyEffect>(new).unwrap();
-///     new.0 += outgoing.0;
+/// fn merge_my_effect(mut new: EntityWorldMut, outgoing: Entity) {
+///     let outgoing = new.world().get::<MyEffect>(outgoing).unwrap().clone();
+///     new.get_mut::<MyEffect>().unwrap().0 += outgoing.0;
 /// }
 /// ```
 #[derive(Resource, Default)]

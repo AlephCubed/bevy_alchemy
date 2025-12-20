@@ -101,7 +101,7 @@ impl<B: Bundle> AddEffectCommand<B> {
                 .collect();
 
             for merge in merge_functions {
-                merge(world, new_effect, old_effect);
+                merge(world.entity_mut(new_effect), old_effect);
             }
         }
 

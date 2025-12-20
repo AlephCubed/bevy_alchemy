@@ -2,8 +2,9 @@ use crate::ReflectComponent;
 use crate::registry::EffectMergeRegistry;
 use bevy_app::{App, Plugin, PreUpdate};
 use bevy_ecs::component::Mutable;
-use bevy_ecs::prelude::{Commands, Component, Entity, Query, Res, World};
+use bevy_ecs::prelude::{Commands, Component, Entity, Query, Res};
 use bevy_ecs::schedule::IntoScheduleConfigs;
+use bevy_ecs::world::EntityWorldMut;
 use bevy_reflect::Reflect;
 use bevy_time::{Time, Timer, TimerMode};
 use std::time::Duration;
@@ -26,13 +27,11 @@ pub fn register_timer_merge_functions(registry: &mut EffectMergeRegistry) {
 
 /// Merge logic for [`Lifetime`] and [`Delay`].
 fn merge_timer<T: EffectTimer + Component<Mutability = Mutable> + Clone>(
-    world: &mut World,
-    new: Entity,
+    mut new: EntityWorldMut,
     outgoing: Entity,
 ) {
-    let outgoing = world.get::<T>(outgoing).unwrap().clone();
-    let mut new = world.get_mut::<T>(new).unwrap();
-    new.merge(&outgoing);
+    let outgoing = new.world().get::<T>(outgoing).unwrap().clone();
+    new.get_mut::<T>().unwrap().merge(&outgoing);
 }
 
 // Todo With more getters/settings, `merge` could have a default implementation.
