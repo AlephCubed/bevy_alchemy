@@ -10,7 +10,7 @@ fn main() {
     App::new()
         .add_plugins((DefaultPlugins, AlchemyPlugin))
         .add_systems(Startup, init_scene)
-        .add_systems(Update, (on_space_pressed, deal_poison_damage))
+        .add_systems(Update, (on_space_pressed, deal_poison_damage, update_ui))
         .run();
 }
 
@@ -26,6 +26,8 @@ struct Poison {
 /// Spawn a target on startup.
 fn init_scene(mut commands: Commands) {
     commands.spawn((Name::new("Target"), Health(100)));
+    commands.spawn(Text::default());
+    commands.spawn(Camera2d);
 }
 
 /// When space is pressed, apply poison to the target.
@@ -38,7 +40,6 @@ fn on_space_pressed(
         return;
     }
 
-    info!("Applying Effect");
     commands.entity(*target).with_effect(EffectBundle {
         lifetime: Some(Lifetime::from_seconds(4.0)), // The duration of the effect.
         delay: Some(Delay::from_seconds(1.0)),       // The time between damage ticks.
@@ -65,6 +66,24 @@ fn deal_poison_damage(
 
         // Otherwise, apply the damage.
         health.0 -= poison.damage;
-        info!("The target now has {} health.", health.0);
+    }
+}
+
+fn update_ui(
+    mut ui: Single<&mut Text>,
+    target: Single<&Health>,
+    effects: Query<(Entity, &Lifetime, &Delay), With<Poison>>,
+) {
+    ui.0 = "Press Space to apply poison\n\n".to_string();
+
+    ui.0 += &format!("Health: {}\n\n", target.0);
+
+    for (entity, lifetime, delay) in &effects {
+        ui.0 += &format!(
+            "{} - {:.1}s (tick in {:.1}s)\n",
+            entity,
+            lifetime.timer.remaining_secs(),
+            delay.timer.remaining_secs()
+        );
     }
 }
