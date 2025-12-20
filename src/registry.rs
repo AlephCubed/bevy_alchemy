@@ -12,13 +12,13 @@ use std::collections::HashMap;
 /// #[derive(Component, Clone)]
 /// struct MyEffect(f32);
 ///
-/// fn merge_my_effect(world: &mut World, old: Entity, incoming: Entity) {
-///     let incoming = world.get::<MyEffect>(incoming).unwrap().clone();
-///     let mut old = world.get_mut::<MyEffect>(old).unwrap();
-///     old.0 + incoming.0;
+/// fn merge_my_effect(world: &mut World, new: Entity, outgoing: Entity) {
+///     let outgoing = world.get::<MyEffect>(outgoing).unwrap().clone();
+///     let mut new = world.get_mut::<MyEffect>(new).unwrap();
+///     new.0 += outgoing.0;
 /// }
 /// ```
-pub type EffectMergeFn = fn(world: &mut World, old: Entity, incoming: Entity);
+pub type EffectMergeFn = fn(world: &mut World, new: Entity, outgoing: Entity);
 
 /// Stores the effect merge logic for each registered component.
 /// New components can be registered by providing a [`EffectMergeFn`] to the [`register`](EffectMergeRegistry::register) method.
@@ -39,10 +39,10 @@ pub type EffectMergeFn = fn(world: &mut World, old: Entity, incoming: Entity);
 ///         .register::<MyEffect>(merge_my_effect);
 /// }
 ///
-/// fn merge_my_effect(world: &mut World, old: Entity, incoming: Entity) {
-///     let incoming = world.get::<MyEffect>(incoming).unwrap().clone();
-///     let mut old = world.get_mut::<MyEffect>(old).unwrap();
-///     old.0 + incoming.0;
+/// fn merge_my_effect(world: &mut World, new: Entity, outgoing: Entity) {
+///     let outgoing = world.get::<MyEffect>(outgoing).unwrap().clone();
+///     let mut new = world.get_mut::<MyEffect>(new).unwrap();
+///     new.0 += outgoing.0;
 /// }
 /// ```
 #[derive(Resource, Default)]
@@ -52,7 +52,7 @@ pub struct EffectMergeRegistry {
 
 impl EffectMergeRegistry {
     /// Registers a [`EffectMergeFn`] to be run whenever two `T` status effects are merged.
-    pub fn register<T: Component>(&mut self, f: EffectMergeFn) -> &mut Self {
+    pub fn register<T: Component + Clone>(&mut self, f: EffectMergeFn) -> &mut Self {
         self.merges.insert(TypeId::of::<T>(), f);
         self
     }

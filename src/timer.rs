@@ -26,12 +26,12 @@ pub fn register_timer_merge_functions(registry: &mut EffectMergeRegistry) {
 
 fn merge_timer<T: EffectTimer + Component<Mutability = Mutable> + Clone>(
     world: &mut World,
-    old: Entity,
-    incoming: Entity,
+    new: Entity,
+    outgoing: Entity,
 ) {
-    let incoming = world.get::<T>(incoming).unwrap().clone();
-    let mut old = world.get_mut::<T>(old).unwrap();
-    old.merge(&incoming);
+    let outgoing = world.get::<T>(outgoing).unwrap().clone();
+    let mut new = world.get_mut::<T>(new).unwrap();
+    new.merge(&outgoing);
 }
 
 // Todo With more getters/settings, `merge` could have a default implementation.
@@ -68,28 +68,27 @@ macro_rules! impl_effect_timer {
                 self
             }
 
-            fn merge(&mut self, incoming: &Self) {
+            fn merge(&mut self, other: &Self) {
                 match self.mode {
-                    TimerMergeMode::Replace => self.timer = incoming.timer.clone(),
-                    TimerMergeMode::Inherit => {}
+                    TimerMergeMode::Replace => {}
+                    TimerMergeMode::Inherit => self.timer = other.timer.clone(),
                     TimerMergeMode::Fraction => {
-                        let fraction = self.timer.fraction();
-                        let duration = incoming.timer.duration().as_secs_f32();
-
-                        self.timer = incoming.timer.clone();
+                        let fraction = other.timer.fraction();
+                        let duration = self.timer.duration().as_secs_f32();
                         self.timer
                             .set_elapsed(Duration::from_secs_f32(fraction * duration));
                     }
                     TimerMergeMode::Max => {
-                        let old = self.timer.remaining_secs();
-                        let new = incoming.timer.remaining_secs();
-                        if new > old {
-                            self.timer = incoming.timer.clone();
+                        let old = other.timer.remaining_secs();
+                        let new = self.timer.remaining_secs();
+
+                        if old > new {
+                            self.timer = other.timer.clone();
                         }
                     }
                     TimerMergeMode::Sum => {
                         self.timer
-                            .set_duration(incoming.timer.duration() + self.timer.duration());
+                            .set_duration(other.timer.duration() + self.timer.duration());
                     }
                 }
             }

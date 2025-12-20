@@ -143,6 +143,10 @@ fn timer_merge_replace() {
         world.query::<&Lifetime>().single(&world).unwrap(),
         &second_lifetime
     );
+    assert_eq!(
+        world.query::<&MyEffect>().single(&world).unwrap(),
+        &MyEffect(1)
+    );
 }
 
 #[test]
@@ -169,6 +173,10 @@ fn timer_merge_inherit() {
     assert_eq!(
         world.query::<&Delay>().single(&world).unwrap(),
         &first_delay
+    );
+    assert_eq!(
+        world.query::<&MyEffect>().single(&world).unwrap(),
+        &MyEffect(1)
     );
 }
 
@@ -208,6 +216,10 @@ fn timer_merge_fraction() {
             mode: TimerMergeMode::Fraction,
         }
     );
+    assert_eq!(
+        world.query::<&MyEffect>().single(&world).unwrap(),
+        &MyEffect(1)
+    );
 }
 
 #[test]
@@ -239,4 +251,8 @@ fn timer_merge_max() {
     world.flush();
 
     assert_eq!(world.query::<&Delay>().single(&world).unwrap(), &max);
+    assert_eq!(
+        world.query::<&MyEffect>().single(&world).unwrap(),
+        &MyEffect(2)
+    );
 }

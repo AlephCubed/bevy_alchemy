@@ -6,6 +6,7 @@ use bevy_ecs::prelude::*;
 use bevy_ecs::ptr::MovingPtr;
 use bevy_ecs::spawn::SpawnableList;
 use bevy_log::warn_once;
+use std::any::TypeId;
 
 /// Applies an effect to a target entity.
 /// This *might* spawn a new entity, depending on what effects are already applied to the target.
@@ -22,13 +23,6 @@ pub struct AddEffectCommand<B: Bundle> {
 impl<B: Bundle> AddEffectCommand<B> {
     fn spawn(self, world: &mut World) -> Entity {
         let entity = world.spawn_empty();
-        let id = entity.id();
-        self.insert(entity);
-        id
-    }
-
-    fn spawn_temp(self, world: &mut World) -> Entity {
-        let entity = world.spawn(Disabled);
         let id = entity.id();
         self.insert(entity);
         id
@@ -51,7 +45,14 @@ impl<B: Bundle> AddEffectCommand<B> {
         }
     }
 
-    fn merge(self, world: &mut World, old_entity: Entity) {
+    /// Inserts into the existing entity, and then merges the old effect into it using [`EffectMergeRegistry`].
+    /// Only registered components that implement `Clone` will be merged.
+    /// ## Steps
+    /// 1. Copy unregistered components to a new temporary, disabled entity.
+    /// 2. Insert new components into the existing entity.
+    /// 3. Merge the old components (temp entity) with the new ones (existing entity).
+    /// 4. Despawn temp entity.
+    fn merge(self, world: &mut World, existing_entity: Entity) {
         if !world.contains_resource::<EffectMergeRegistry>() {
             warn_once!(
                 "No `EffectComponentMergeRegistry` found. Did you forget to add the `StatusEffectPlugin`?"
@@ -59,29 +60,52 @@ impl<B: Bundle> AddEffectCommand<B> {
             return;
         }
 
-        let incoming = self.spawn_temp(world);
+        // Copy existing mergeable components to a temporary entity.
+        let new_effect = existing_entity;
+        let old_effect = {
+            let registry = world.resource::<EffectMergeRegistry>();
+            let allow: Vec<TypeId> = registry.merges.keys().copied().collect();
 
-        let incoming_entity = world.entity(incoming);
-        let archetype = incoming_entity.archetype();
-        let registry = world.resource::<EffectMergeRegistry>();
+            let temp = world.spawn(Disabled).id();
+            world
+                .entity_mut(existing_entity)
+                .clone_with_opt_in(temp, |builder| {
+                    // Todo Required components.
+                    builder.without_required_components(|builder| {
+                        builder.allow_by_ids(allow);
+                    });
+                });
 
-        let merge_functions: Vec<EffectMergeFn> = archetype
-            .components()
-            .iter()
-            .filter_map(|component_id| {
-                world
-                    .components()
-                    .get_info(*component_id)
-                    .and_then(|info| info.type_id())
-                    .and_then(|id| registry.merges.get(&id).map(|f| *f))
-            })
-            .collect();
+            temp
+        };
 
-        for merge in merge_functions {
-            merge(world, old_entity, incoming);
+        self.insert(world.entity_mut(new_effect));
+
+        // Call merge function on those copied components.
+        {
+            let old = world.entity(old_effect);
+            let archetype = old.archetype();
+
+            let registry = world.resource::<EffectMergeRegistry>();
+
+            let merge_functions: Vec<EffectMergeFn> = archetype
+                .components()
+                .iter()
+                .filter_map(|component_id| {
+                    world
+                        .components()
+                        .get_info(*component_id)
+                        .and_then(|info| info.type_id())
+                        .and_then(|id| registry.merges.get(&id).map(|f| *f))
+                })
+                .collect();
+
+            for merge in merge_functions {
+                merge(world, new_effect, old_effect);
+            }
         }
 
-        world.despawn(incoming);
+        world.despawn(old_effect);
     }
 }
 
