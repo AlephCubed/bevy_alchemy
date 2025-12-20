@@ -10,7 +10,8 @@ fn main() {
     App::new()
         .add_plugins((DefaultPlugins, AlchemyPlugin))
         .add_systems(Startup, init_scene)
-        .add_systems(Update, (on_space_pressed, deal_poison_damage, update_ui))
+        .add_systems(Update, (on_space_pressed, deal_poison_damage))
+        .add_systems(PostUpdate, update_ui)
         .run();
 }
 
