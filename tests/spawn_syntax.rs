@@ -37,19 +37,19 @@ fn spawnable_list_stack() {
 }
 
 #[test]
-fn spawnable_list_replace() {
+fn spawnable_list_insert() {
     let mut world = World::new();
 
     world.spawn((
         Name::new("Target"),
         EffectedBy::spawn((
             EffectBundle {
-                mode: EffectMode::Replace,
+                mode: EffectMode::Insert,
                 bundle: MyEffect(0),
                 ..Default::default()
             },
             EffectBundle {
-                mode: EffectMode::Replace,
+                mode: EffectMode::Insert,
                 bundle: MyEffect(1),
                 ..Default::default()
             },
@@ -84,12 +84,12 @@ fn spawnable_list_mixed() {
                 ..Default::default()
             },
             EffectBundle {
-                mode: EffectMode::Replace,
+                mode: EffectMode::Insert,
                 bundle: MyEffect(2),
                 ..Default::default()
             },
             EffectBundle {
-                mode: EffectMode::Replace,
+                mode: EffectMode::Insert,
                 bundle: MyEffect(3),
                 ..Default::default()
             },

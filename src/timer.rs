@@ -24,6 +24,7 @@ pub fn register_timer_merge_functions(registry: &mut EffectMergeRegistry) {
         .register::<Delay>(merge_timer::<Delay>);
 }
 
+/// Merge logic for [`Lifetime`] and [`Delay`].
 fn merge_timer<T: EffectTimer + Component<Mutability = Mutable> + Clone>(
     world: &mut World,
     new: Entity,
@@ -48,7 +49,7 @@ pub trait EffectTimer: Sized {
     /// A builder that overwrites the current merge mode with a new value.
     fn with_mode(self, mode: TimerMergeMode) -> Self;
 
-    /// Merges an existing timer (self) with the new one (incoming).
+    /// Merges a new timer (self) with the old one (other).
     /// Behaviour depends on the current [`TimerMergeMode`].
     fn merge(&mut self, incoming: &Self);
 }
@@ -71,7 +72,7 @@ macro_rules! impl_effect_timer {
             fn merge(&mut self, other: &Self) {
                 match self.mode {
                     TimerMergeMode::Replace => {}
-                    TimerMergeMode::Inherit => self.timer = other.timer.clone(),
+                    TimerMergeMode::Keep => self.timer = other.timer.clone(),
                     TimerMergeMode::Fraction => {
                         let fraction = other.timer.fraction();
                         let duration = self.timer.duration().as_secs_f32();
@@ -103,7 +104,7 @@ macro_rules! impl_effect_timer {
 pub struct Lifetime {
     /// Tracks the elapsed time. Once the timer is finished, the entity will be despawned.
     pub timer: Timer,
-    /// Controls the merge behaviour when an effect is [replaced](crate::EffectMode::Replace).
+    /// Controls the merge behaviour when an effect is [merged](crate::EffectMode::Merge).
     pub mode: TimerMergeMode,
 }
 
@@ -124,7 +125,7 @@ impl Default for Lifetime {
 pub struct Delay {
     /// Tracks the elapsed time.
     pub timer: Timer,
-    /// Controls the merge behaviour when an effect is [replaced](crate::EffectMode::Replace).
+    /// Controls the merge behaviour when an effect is [merged](crate::EffectMode::Merge).
     pub mode: TimerMergeMode,
 }
 
@@ -139,15 +140,15 @@ impl Default for Delay {
     }
 }
 
-/// Controls the merge behaviour of a timer when it's effect is [merged](crate::EffectMode::Merge).
+/// Controls the merge behaviour of a timer when its effect is [merged](crate::EffectMode::Merge).
 #[derive(Reflect, Eq, PartialEq, Debug, Copy, Clone)]
 #[reflect(PartialEq, Debug, Clone)]
 pub enum TimerMergeMode {
     /// The new effect's time will be used, ignoring the old one.
-    /// Same as [`crate::EffectMode::Replace`], but on a per-timer basis.
+    /// Results in same behaviour as [`EffectMode::Insert`](crate::EffectMode::Insert), but on a per-timer basis.
     Replace,
     /// The old effect's time will be used, ignoring the new one.
-    Inherit,
+    Keep,
     /// The new timer is used, but with the same fraction of the old timer's elapsed time.
     Fraction,
     /// The timer with the larger time remaining will be used.

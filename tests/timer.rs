@@ -14,9 +14,9 @@ fn merge_replace() {
 }
 
 #[test]
-fn merge_inherit() {
-    let first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Inherit);
-    let second = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Inherit);
+fn merge_keep() {
+    let first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Keep);
+    let second = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Keep);
     let mut result = second.clone();
     result.merge(&first);
 

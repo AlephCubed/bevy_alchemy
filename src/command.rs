@@ -153,7 +153,7 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
 
         match self.bundle.mode {
             EffectMode::Stack => unreachable!(),
-            EffectMode::Replace => self.insert(world.entity_mut(old_entity)),
+            EffectMode::Insert => self.insert(world.entity_mut(old_entity)),
             EffectMode::Merge => self.merge(world, old_entity),
         }
     }

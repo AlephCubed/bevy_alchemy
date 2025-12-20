@@ -37,13 +37,16 @@ impl Plugin for AlchemyPlugin {
 #[derive(Component, Reflect, Eq, PartialEq, Debug, Default, Copy, Clone)]
 #[reflect(Component, PartialEq, Debug, Default, Clone)]
 pub enum EffectMode {
-    /// Multiple of the same effect can exist at once.
+    /// Multiple of the same effect can exist at once, so when an effect is added, its components will be spawned as a new entity.
     #[default]
     Stack,
-    /// When an effect is added, it will replace matching effects.
-    Replace,
-    /// When an effect is added, it will merge with matching effects.
-    /// By default, the incoming effect will replace the old one, same as [`Replace`](Self::Replace).
+    /// When an effect is added, its components will be inserted into a matching effect.
+    /// If there are no matches, the components will be spawned as a new entity.
+    Insert,
+    /// When an effect is added, its components will be merged into any matching effect.
+    /// By default, the incoming component will replace the old one, same as [`Insert`](Self::Insert).
     /// This can be configured on a per-component basis using the [`EffectMergeRegistry`] resource.
+    ///
+    /// If there are no matching effects, the components will be spawned as a new entity.
     Merge,
 }

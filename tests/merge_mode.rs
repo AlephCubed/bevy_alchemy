@@ -50,18 +50,18 @@ fn stack() {
 }
 
 #[test]
-fn replace() {
+fn insert() {
     let mut world = init_world();
 
     let target = world.spawn_empty().id();
 
     world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Replace,
+        mode: EffectMode::Insert,
         bundle: MyEffect(0),
         ..Default::default()
     });
     world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Replace,
+        mode: EffectMode::Insert,
         bundle: MyEffect(1),
         ..Default::default()
     });
@@ -94,12 +94,12 @@ fn mixed() {
     });
 
     world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Replace,
+        mode: EffectMode::Insert,
         bundle: MyEffect(2),
         ..Default::default()
     });
     world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Replace,
+        mode: EffectMode::Insert,
         bundle: MyEffect(3),
         ..Default::default()
     });
@@ -150,11 +150,11 @@ fn timer_merge_replace() {
 }
 
 #[test]
-fn timer_merge_inherit() {
+fn timer_merge_keep() {
     let mut world = init_world();
 
     let target = world.spawn_empty().id();
-    let first_delay = Delay::from_seconds(1.0).with_mode(TimerMergeMode::Inherit);
+    let first_delay = Delay::from_seconds(1.0).with_mode(TimerMergeMode::Keep);
     world.commands().entity(target).with_effect(EffectBundle {
         mode: EffectMode::Merge,
         delay: Some(first_delay.clone()),
@@ -163,7 +163,7 @@ fn timer_merge_inherit() {
     });
     world.commands().entity(target).with_effect(EffectBundle {
         mode: EffectMode::Merge,
-        delay: Some(Delay::from_seconds(2.0).with_mode(TimerMergeMode::Inherit)),
+        delay: Some(Delay::from_seconds(2.0).with_mode(TimerMergeMode::Keep)),
         bundle: MyEffect(1),
         ..Default::default()
     });

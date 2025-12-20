@@ -50,7 +50,7 @@ fn on_space_pressed(
 
     info!("Applying Effect");
     commands.entity(*target).with_effect(EffectBundle {
-        mode: EffectMode::Merge, // Block having multiple of effect stacked on a single target.
+        mode: EffectMode::Insert, // Block having multiple of effect stacked on a single target.
         lifetime: Some(Lifetime::from_seconds(2.0)), // The duration of the effect.
         bundle: DecayingSpeed {
             // Start with double move speed.
