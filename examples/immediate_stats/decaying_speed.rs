@@ -51,9 +51,8 @@ fn on_space_pressed(
         mode: EffectMode::Insert, // Block having multiple of effect stacked on a single target.
         lifetime: Some(Lifetime::from_seconds(2.0)), // The duration of the effect.
         bundle: DecayingSpeed {
-            // Start with double move speed.
             start_speed_boost: Modifier {
-                bonus: 20,
+                bonus: 10,
                 multiplier: 2.0,
             },
         },
@@ -80,6 +79,7 @@ fn apply_speed_boost(
     }
 }
 
+/// Updates the UI to match thw world state.
 fn update_ui(
     mut ui: Single<&mut Text>,
     target: Single<&MovementSpeed>,

@@ -25,7 +25,7 @@ struct DecayingSpeedPlugin;
 #[auto_component(plugin = DecayingSpeedPlugin)]
 struct MovementSpeed(Stat);
 
-/// Applies a 2x speed boost, which decreases throughout its duration.
+/// Applies a speed boost, which decreases throughout its duration.
 #[derive(Component, Default)]
 struct DecayingSpeed {
     start_speed_boost: Modifier,
@@ -35,6 +35,8 @@ struct DecayingSpeed {
 #[auto_system(plugin = DecayingSpeedPlugin, schedule = Startup)]
 fn init_scene(mut commands: Commands) {
     commands.spawn((Name::new("Target"), MovementSpeed(Stat::new(100))));
+    commands.spawn(Text::default());
+    commands.spawn(Camera2d);
 }
 
 /// When space is pressed, apply decaying speed to the target.
@@ -48,13 +50,14 @@ fn on_space_pressed(
         return;
     }
 
-    info!("Applying Effect");
     commands.entity(*target).with_effect(EffectBundle {
         mode: EffectMode::Insert, // Block having multiple of effect stacked on a single target.
         lifetime: Some(Lifetime::from_seconds(2.0)), // The duration of the effect.
         bundle: DecayingSpeed {
-            // Start with double move speed.
-            start_speed_boost: Modifier::from_multiplier(2.0),
+            start_speed_boost: Modifier {
+                bonus: 10,
+                multiplier: 2.0,
+            },
         },
         ..default()
     });
@@ -77,7 +80,28 @@ fn apply_speed_boost(
             effect.start_speed_boost,
             lifetime.timer.fraction_remaining(),
         );
+    }
+}
 
-        info!("The target now has {} movement speed.", speed.0.total());
+/// Updates the UI to match thw world state.
+#[auto_system(plugin = DecayingSpeedPlugin, schedule = PostUpdate)]
+fn update_ui(
+    mut ui: Single<&mut Text>,
+    target: Single<&MovementSpeed>,
+    effects: Query<(Entity, &Lifetime, &DecayingSpeed)>,
+) {
+    ui.0 = "Press Space to apply decaying movement speed\n\n".to_string();
+
+    ui.0 += &format!("Speed: {:.1} ({:.1})\n\n", target.0.total(), target.0);
+
+    for (entity, lifetime, speed) in &effects {
+        ui.0 += &format!(
+            "{} - {:.1}s ({:.1})\n",
+            entity,
+            lifetime.timer.remaining_secs(),
+            speed
+                .start_speed_boost
+                .scaled(lifetime.timer.fraction_remaining())
+        );
     }
 }
