@@ -65,7 +65,7 @@ fn deal_poison_damage(
             continue;
         };
 
-        // Otherwise, apply the damage.
+        // Otherwise, deal the damage.
         health.0 -= poison.damage;
     }
 }
