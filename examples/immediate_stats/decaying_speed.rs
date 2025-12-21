@@ -79,7 +79,7 @@ fn apply_speed_boost(
     }
 }
 
-/// Updates the UI to match thw world state.
+/// Updates the UI to match the world state.
 fn update_ui(
     mut ui: Single<&mut Text>,
     target: Single<&MovementSpeed>,

@@ -2777,7 +2777,7 @@ dependencies = [
 
 [[package]]
 name = "immediate_stats"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "bevy_app",
  "bevy_auto_plugin",
@@ -2788,7 +2788,7 @@ dependencies = [
 
 [[package]]
 name = "immediate_stats_macros"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "darling 0.23.0",
  "proc-macro-error",
