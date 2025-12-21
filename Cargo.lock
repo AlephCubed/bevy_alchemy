@@ -2778,6 +2778,8 @@ dependencies = [
 [[package]]
 name = "immediate_stats"
 version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff184cabf274770f2fda124551fc191bb164ac4600c62aad85386626a668eac2"
 dependencies = [
  "bevy_app",
  "bevy_auto_plugin",
@@ -2789,6 +2791,8 @@ dependencies = [
 [[package]]
 name = "immediate_stats_macros"
 version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69ffebc1448df85d97343a8d36aa5ce7b5c283c1934ff24f5a8accf47bbb5c3d"
 dependencies = [
  "darling 0.23.0",
  "proc-macro-error",
