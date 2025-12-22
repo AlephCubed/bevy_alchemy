@@ -35,14 +35,6 @@ impl<B: Bundle> AddEffectCommand<B> {
             self.bundle.mode,
             self.bundle.bundle,
         ));
-
-        if let Some(lifetime) = self.bundle.lifetime {
-            entity.insert(lifetime);
-        }
-
-        if let Some(delay) = self.bundle.delay {
-            entity.insert(delay);
-        }
     }
 
     /// Inserts into the existing entity, and then merges the old effect into it using [`EffectMergeRegistry`].

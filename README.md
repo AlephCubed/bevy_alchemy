@@ -31,7 +31,7 @@ commands.spawn((
 For some effects it makes sense to allow stacking, so a single entity could be effected multiple times at once.
 For others, each effect should only be applied once.
 
-Both behaviours are supported, and can be selected using an effect's `MergeMode`.
+Both behaviours are supported, and can be selected using an effect's `MergeMode`. Effects are consider the same if the entities have the same name.
 
 | Mode   | Behaviour                                                                               |
 |--------|-----------------------------------------------------------------------------------------|
@@ -64,8 +64,9 @@ fn deal_poison_damage(
 }
 ```
 
-### Examples
+### Timers
 
+### Examples
 
 ### Bevy Version Compatibility
 

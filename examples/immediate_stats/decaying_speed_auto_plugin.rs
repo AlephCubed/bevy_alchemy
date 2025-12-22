@@ -52,13 +52,15 @@ fn on_space_pressed(
 
     commands.entity(*target).with_effect(EffectBundle {
         mode: EffectMode::Insert, // Block having multiple of effect stacked on a single target.
-        lifetime: Some(Lifetime::from_seconds(2.0)), // The duration of the effect.
-        bundle: DecayingSpeed {
-            start_speed_boost: Modifier {
-                bonus: 10,
-                multiplier: 2.0,
+        bundle: (
+            Lifetime::from_seconds(2.0), // The duration of the effect.
+            DecayingSpeed {
+                start_speed_boost: Modifier {
+                    bonus: 10,
+                    multiplier: 2.0,
+                },
             },
-        },
+        ),
         ..default()
     });
 }
