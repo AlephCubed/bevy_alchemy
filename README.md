@@ -66,8 +66,9 @@ fn deal_poison_damage(
 ```
 
 ### Timers
-
-### Examples
+Two timers are added by the crate: 
+1. `Lifetime` - Despawns the effect when the timer ends.
+2. `Delay` - A repeating timer used for the delay between effect applications.
 
 ### Bevy Version Compatibility
 

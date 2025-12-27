@@ -118,7 +118,7 @@ impl Default for Lifetime {
     }
 }
 
-/// Repeating timer used for the delay between effect applications.  
+/// A repeating timer used for the delay between effect applications.  
 #[derive(Component, Reflect, Eq, PartialEq, Debug, Clone)]
 #[reflect(Component, PartialEq, Debug, Clone)]
 pub struct Delay {
