@@ -1,5 +1,4 @@
 //! A simple damage-over-time effect.
-//! Todo Add UI.
 
 use bevy::prelude::*;
 use bevy_alchemy::{

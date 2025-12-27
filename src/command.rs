@@ -62,7 +62,6 @@ impl<B: Bundle> AddEffectCommand<B> {
             world
                 .entity_mut(existing_entity)
                 .clone_with_opt_in(temp, |builder| {
-                    // Todo Required components.
                     builder.without_required_components(|builder| {
                         builder.allow_by_ids(allow);
                     });
