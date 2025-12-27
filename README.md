@@ -28,16 +28,17 @@ commands.spawn((
 ```
 
 ### Effect Modes
-For some effects it makes sense to allow stacking, so a single entity could be effected multiple times at once.
-For others, each effect should only be applied once.
-
-Both behaviours are supported, and can be selected using an effect's `MergeMode`. Effects are consider the same if the entities have the same name.
+For some effects it makes sense to allow stacking, so a single entity could be effected by an effect multiple times.
+Other effects should only be applied once, either replacing or merging with the previous one. 
+This behaviour can be selected using an effect's `MergeMode`, which has the following cases:
 
 | Mode   | Behaviour                                                                               |
 |--------|-----------------------------------------------------------------------------------------|
 | Stack  | Multiple of the same effect can exist at once.                                          |
 | Insert | New applications will overwrite the existing one.                                       |
 | Merge  | New applications are merged with the existing one, using a configurable merge function. |
+
+Effects are considered the same if they have the same name.
 
 ### Implementing Effects
 Effects can be implemented using simple systems. Below is an excerpt from the poison example.
