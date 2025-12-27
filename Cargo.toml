@@ -4,11 +4,10 @@ version = "0.1.0"
 edition = "2024"
 description = "An experimental, status effects-as-entities system for Bevy."
 categories = ["game-development"]
-keywords = ["game", "gamedev", "bevy", "relationship"]
+keywords = ["game", "gamedev", "bevy", "status", "effect"]
 repository = "https://github.com/AlephCubed/bevy_alchemy"
 license = "MIT OR Apache-2.0"
 authors = ["AlephCubed"]
-readme = "README.md"
 
 [package.metadata.docs.rs]
 all-features = true
