@@ -87,7 +87,7 @@ impl<B: Bundle> AddEffectCommand<B> {
                         .components()
                         .get_info(*component_id)
                         .and_then(|info| info.type_id())
-                        .and_then(|id| registry.merges.get(&id).map(|f| *f))
+                        .and_then(|id| registry.merges.get(&id).copied())
                 })
                 .collect();
 
@@ -101,7 +101,7 @@ impl<B: Bundle> AddEffectCommand<B> {
 }
 
 impl<B: Bundle> Command for AddEffectCommand<B> {
-    fn apply(self, world: &mut World) -> () {
+    fn apply(self, world: &mut World) {
         if self.bundle.mode == EffectMode::Stack {
             self.spawn(world);
             return;
@@ -119,19 +119,17 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
         // 1. effecting the same target,
         // 2. and has the same name (ID).
         let old_entity = effected_by.iter().find_map(|entity| {
-            let Some(other_mode) = world.get::<EffectMode>(*entity) else {
-                return None;
-            };
+            let other_mode = world.get::<EffectMode>(*entity)?;
 
             // Todo Think more about.
             if self.bundle.mode != *other_mode {
                 return None;
             }
 
-            if let Some(name) = world.get::<Name>(*entity) {
-                if name == &self.bundle.name {
-                    return Some(*entity);
-                }
+            let name = world.get::<Name>(*entity)?;
+
+            if name == &self.bundle.name {
+                return Some(*entity);
             }
 
             None
