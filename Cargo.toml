@@ -1,6 +1,6 @@
 [package]
 name = "bevy_alchemy"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "An experimental, status effects-as-entities system for Bevy."
 categories = ["game-development"]
@@ -13,22 +13,22 @@ authors = ["AlephCubed"]
 all-features = true
 
 [dependencies]
-bevy_app = { version = "0.17", default-features = false, features = [
+bevy_app = { version = "0.18", default-features = false, features = [
   "bevy_reflect",
 ] }
-bevy_ecs = { version = "0.17", default-features = false, features = [
+bevy_ecs = { version = "0.18", default-features = false, features = [
   "bevy_reflect",
 ] }
-bevy_reflect = { version = "0.17", default-features = false }
-bevy_time = { version = "0.17", default-features = false, features = [
+bevy_reflect = { version = "0.18", default-features = false }
+bevy_time = { version = "0.18", default-features = false, features = [
   "bevy_reflect",
 ] }
-bevy_log = { version = "0.17", default-features = false }
+bevy_log = { version = "0.18", default-features = false }
 
 [dev-dependencies]
-bevy = "0.17"
-immediate_stats = { version = "0.3.2", features = ["bevy_auto_plugin"] }
-bevy_auto_plugin = { version = "0.8" }
+bevy = "0.18"
+bevy_auto_plugin = { version = "0.9" }
+immediate_stats = { version = "0.4", features = ["bevy_auto_plugin"] }
 
 [lints.rust]
 missing_docs = "warn"
