@@ -338,7 +338,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_alchemy"
-version = "0.2.0-rc.1"
+version = "0.2.0"
 dependencies = [
  "bevy",
  "bevy_app",
@@ -522,8 +522,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_auto_plugin"
-version = "0.8.2"
-source = "git+https://github.com/StrikeForceZero/bevy_auto_plugin#7e190259e5f08bcec8be577216f1e9cc3ed8a1db"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b00355e2dd268a7f9c7453773753edfedda475896c0b4e7b2d015aa04f4849fd"
 dependencies = [
  "bevy_auto_plugin_proc_macros",
  "bevy_auto_plugin_shared",
@@ -533,8 +534,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_auto_plugin_proc_macros"
-version = "0.8.2"
-source = "git+https://github.com/StrikeForceZero/bevy_auto_plugin#7e190259e5f08bcec8be577216f1e9cc3ed8a1db"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d85f2558b3a8f3d5e3e8df9debbff0665cad6c7c2bfde3537e7ff247fde3cd8f"
 dependencies = [
  "bevy_auto_plugin_shared",
  "proc-macro2",
@@ -542,8 +544,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_auto_plugin_shared"
-version = "0.8.2"
-source = "git+https://github.com/StrikeForceZero/bevy_auto_plugin#7e190259e5f08bcec8be577216f1e9cc3ed8a1db"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6d825af42f08348a7c2307f50aabde362e774dd906c274556bd6b71794c8476"
 dependencies = [
  "bevy_app",
  "darling 0.21.3",
@@ -2877,7 +2880,9 @@ dependencies = [
 
 [[package]]
 name = "immediate_stats"
-version = "0.4.0-rc.1"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8619adda62694b9bf085e6134215a9439279a6cb4b305ea008f89cedf9828a6"
 dependencies = [
  "bevy_app",
  "bevy_auto_plugin",
@@ -2888,7 +2893,9 @@ dependencies = [
 
 [[package]]
 name = "immediate_stats_macros"
-version = "0.4.0-rc.1"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cf0252f42204daee69054e2f4d8b102a99f9c1065cbc9e9826a0dfaef226aa22"
 dependencies = [
  "darling 0.23.0",
  "proc-macro-error",
