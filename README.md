@@ -74,4 +74,5 @@ Two timers are added by the crate:
 
 | Bevy   | Bevy Alchemy |
 |--------|--------------|
+| `0.18` | `0.2`        |
 | `0.17` | `0.1`        |
