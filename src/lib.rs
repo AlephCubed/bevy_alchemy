@@ -8,8 +8,8 @@ mod relation;
 
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
-use bevy_reflect::prelude::ReflectDefault;
 use bevy_reflect::Reflect;
+use bevy_reflect::prelude::ReflectDefault;
 
 pub use bundle::*;
 pub use command::*;

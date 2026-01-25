@@ -28,7 +28,7 @@ fn spawnable_list_stack() {
 
     let effects: Vec<u8> = world
         .query::<&MyEffect>()
-        .iter(&mut world)
+        .iter(&world)
         .map(|c| c.0)
         .collect();
 
@@ -60,7 +60,7 @@ fn spawnable_list_insert() {
 
     let effects: Vec<u8> = world
         .query::<&MyEffect>()
-        .iter(&mut world)
+        .iter(&world)
         .map(|c| c.0)
         .collect();
 
@@ -100,7 +100,7 @@ fn spawnable_list_mixed() {
 
     let effects: Vec<u8> = world
         .query::<&MyEffect>()
-        .iter(&mut world)
+        .iter(&world)
         .map(|c| c.0)
         .collect();
 

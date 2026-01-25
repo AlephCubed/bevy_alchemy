@@ -2,7 +2,8 @@
 //! to add a decaying movement speed buff.
 //! This means that the strength of the buff decreases throughout its duration.
 //!
-//! This uses [`EffectMode::Merge`], which prevents having multiple of the effect applied at the same time (no 10x speed multiplier for you).
+//! This uses [`EffectMode::Merge`], which prevents having multiple of the effect applied at the
+//! same time (no 10x speed multiplier for you).
 //!
 //! There is a second version of this example, which uses Bevy Auto Plugin.
 

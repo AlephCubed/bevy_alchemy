@@ -42,6 +42,10 @@ name = "poison"
 path = "examples/poison.rs"
 
 [[example]]
+name = "poison_falloff"
+path = "examples/poison_falloff.rs"
+
+[[example]]
 name = "decaying_speed"
 path = "examples/immediate_stats/decaying_speed.rs"
 

@@ -1,5 +1,5 @@
-use crate::registry::EffectMergeRegistry;
 use crate::ReflectComponent;
+use crate::registry::EffectMergeRegistry;
 use bevy_app::{App, Plugin, PreUpdate};
 use bevy_ecs::component::Mutable;
 use bevy_ecs::prelude::{Commands, Component, Entity, Query, Res};

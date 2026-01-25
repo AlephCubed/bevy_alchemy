@@ -2,8 +2,8 @@ use crate::EffectMergeRegistry;
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::ReflectComponent;
 use bevy_ecs::prelude::{Component, Entity, EntityWorldMut};
-use bevy_reflect::prelude::ReflectDefault;
 use bevy_reflect::Reflect;
+use bevy_reflect::prelude::ReflectDefault;
 use std::ops::{Add, AddAssign, Deref, DerefMut};
 
 pub(crate) struct StackPlugin;

@@ -1,8 +1,10 @@
 //! This example shows using [Immediate Stats](https://github.com/AlephCubed/immediate_stats)
-//! to add a decaying movement speed buff, using Bevy Auto Plugin (there is a second version of this example which just uses normal Bevy).
+//! to add a decaying movement speed buff, using Bevy Auto Plugin
+//! (there is a second version of this example which just uses normal Bevy).
 //! This means that the strength of the buff decreases throughout its duration.
 //!
-//! This uses [`EffectMode::Merge`], which prevents having multiple of the effect applied at the same time (no 10x speed multiplier for you).
+//! This uses [`EffectMode::Merge`], which prevents having multiple of the effect applied at the
+//! same time (no 10x speed multiplier for you).
 
 use bevy::prelude::*;
 use bevy_alchemy::*;
