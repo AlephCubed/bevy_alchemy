@@ -2,20 +2,20 @@
 
 mod bundle;
 mod command;
+mod component;
 mod registry;
 mod relation;
-mod timer;
 
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
-use bevy_reflect::Reflect;
 use bevy_reflect::prelude::ReflectDefault;
+use bevy_reflect::Reflect;
 
 pub use bundle::*;
 pub use command::*;
+pub use component::*;
 pub use registry::*;
 pub use relation::*;
-pub use timer::*;
 
 /// Setup required types and systems for `bevy_alchemy`.
 pub struct AlchemyPlugin;
@@ -29,7 +29,8 @@ impl Plugin for AlchemyPlugin {
             .register_type::<Delay>()
             .register_type::<TimerMergeMode>()
             .init_resource::<EffectMergeRegistry>()
-            .add_plugins(TimerPlugin);
+            .add_plugins(TimerPlugin)
+            .add_plugins(StackPlugin);
     }
 }
 
