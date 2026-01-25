@@ -1,12 +1,16 @@
-//! A simple damage-over-time effect.
+//! A damage-over-time effect where the damage falls off as more stacks are added.
 //!
-//! Each application of the effect is its own entity, meaning an entity can be poisoned multiple times.
-//! This can be changed by using a different [`EffectMode`](bevy_alchemy::EffectMode).
-//! The `poison_falloff` example shows a different way to handle effect stacking.
+//! When an entity is already poisoned, subsequent applications deal less damage.
+//! In this case the first stack deals 5 damage, the next 4, then 3, and so on.
+//!
+//! This works by [merging](EffectMode::Merge) the effects into a single entity and using the
+//! [number of stacks](EffectStacks) in damage calculations.
+//! A slightly simpler version is available in the `poison` example.
 
 use bevy::prelude::*;
 use bevy_alchemy::{
-    AlchemyPlugin, Delay, EffectBundle, EffectCommandsExt, EffectTimer, Effecting, Lifetime,
+    AlchemyPlugin, Delay, EffectBundle, EffectCommandsExt, EffectMode, EffectStacks, EffectTimer,
+    Effecting, Lifetime,
 };
 
 fn main() {
@@ -29,7 +33,7 @@ struct Poison {
 
 /// Spawn a target on startup.
 fn init_scene(mut commands: Commands) {
-    commands.spawn((Name::new("Target"), Health(100)));
+    commands.spawn((Name::new("Target"), Health(500)));
     commands.spawn(Text::default());
     commands.spawn(Camera2d);
 }
@@ -45,10 +49,12 @@ fn on_space_pressed(
     }
 
     commands.entity(*target).with_effect(EffectBundle {
+        mode: EffectMode::Merge, // Stack tracking requires effect merging.
         bundle: (
+            EffectStacks::default(),     // Enable stack tracking.
             Lifetime::from_seconds(4.0), // The duration of the effect.
             Delay::from_seconds(1.0),    // The time between damage ticks.
-            Poison { damage: 1 },        // The amount of damage to apply per tick.
+            Poison { damage: 5 },        // The amount of damage to apply per tick.
         ),
         ..default()
     });
@@ -56,10 +62,10 @@ fn on_space_pressed(
 
 /// Runs every frame and deals the poison damage.
 fn deal_poison_damage(
-    effects: Query<(&Effecting, &Delay, &Poison)>,
+    effects: Query<(&Effecting, &EffectStacks, &Delay, &Poison)>,
     mut targets: Query<&mut Health>,
 ) {
-    for (target, delay, poison) in effects {
+    for (target, stacks, delay, poison) in effects {
         // We wait until the delay finishes to apply the damage.
         if !delay.timer.is_finished() {
             continue;
@@ -70,24 +76,32 @@ fn deal_poison_damage(
             continue;
         };
 
-        // Otherwise, deal the damage.
-        health.0 -= poison.damage;
+        // Otherwise, deal the damage scaled with the number of stacks.
+        // Each subsequent stack has a decreasing effect, the first deals 5 damage, the next 4, then 3, and so on.
+        let stacks = poison.damage.min(stacks.0 as i32); // Clamp stacks to prevent negative damage.
+        let sub = (stacks * (stacks - 1)) / 2;
+        let damage = poison.damage * stacks - sub;
+
+        info!("Dealt {damage} damage!");
+
+        health.0 -= damage;
     }
 }
 
 fn update_ui(
     mut ui: Single<&mut Text>,
     target: Single<&Health>,
-    effects: Query<(Entity, &Lifetime, &Delay), With<Poison>>,
+    effects: Query<(Entity, &EffectStacks, &Lifetime, &Delay), With<Poison>>,
 ) {
     ui.0 = "Press Space to apply poison\n\n".to_string();
 
     ui.0 += &format!("Health: {}\n\n", target.0);
 
-    for (entity, lifetime, delay) in &effects {
+    for (entity, stacks, lifetime, delay) in &effects {
         ui.0 += &format!(
-            "{} - {:.1}s (tick in {:.1}s)\n",
+            "{}, {} stacks - {:.1}s (tick in {:.1}s)\n",
             entity,
+            stacks.0,
             lifetime.timer.remaining_secs(),
             delay.timer.remaining_secs()
         );

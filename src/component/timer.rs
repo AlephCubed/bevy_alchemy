@@ -9,7 +9,7 @@ use bevy_reflect::Reflect;
 use bevy_time::{Time, Timer, TimerMode};
 use std::time::Duration;
 
-pub(super) struct TimerPlugin;
+pub(crate) struct TimerPlugin;
 
 impl Plugin for TimerPlugin {
     fn build(&self, app: &mut App) {

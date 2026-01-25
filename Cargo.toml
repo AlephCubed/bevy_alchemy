@@ -1,6 +1,6 @@
 [package]
 name = "bevy_alchemy"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 description = "An experimental, status effects-as-entities system for Bevy."
 categories = ["game-development"]
@@ -40,6 +40,10 @@ unused_qualifications = "warn"
 [[example]]
 name = "poison"
 path = "examples/poison.rs"
+
+[[example]]
+name = "poison_falloff"
+path = "examples/poison_falloff.rs"
 
 [[example]]
 name = "decaying_speed"
