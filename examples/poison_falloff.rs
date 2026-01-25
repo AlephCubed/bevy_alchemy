@@ -80,7 +80,7 @@ fn deal_poison_damage(
         // Each subsequent stack has a decreasing effect, the first deals 5 damage, the next 4, then 3, and so on.
         let stacks = poison.damage.min(stacks.0 as i32); // Clamp stacks to prevent negative damage.
         let sub = (stacks * (stacks - 1)) / 2;
-        let damage = (poison.damage * stacks - sub).max(0);
+        let damage = poison.damage * stacks - sub;
 
         info!("Dealt {damage} damage!");
 
