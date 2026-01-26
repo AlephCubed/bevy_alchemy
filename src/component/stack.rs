@@ -41,6 +41,20 @@ impl DerefMut for EffectStacks {
     }
 }
 
+impl Add for EffectStacks {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self(self.0 + rhs.0)
+    }
+}
+
+impl AddAssign for EffectStacks {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0
+    }
+}
+
 impl Add<u8> for EffectStacks {
     type Output = Self;
 
@@ -52,6 +66,18 @@ impl Add<u8> for EffectStacks {
 impl AddAssign<u8> for EffectStacks {
     fn add_assign(&mut self, rhs: u8) {
         self.0 += rhs
+    }
+}
+
+impl From<u8> for EffectStacks {
+    fn from(value: u8) -> Self {
+        EffectStacks(value)
+    }
+}
+
+impl From<EffectStacks> for u8 {
+    fn from(value: EffectStacks) -> Self {
+        value.0
     }
 }
 
