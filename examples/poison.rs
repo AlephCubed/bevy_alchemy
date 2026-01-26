@@ -46,8 +46,9 @@ fn on_space_pressed(
 
     commands.entity(*target).with_effect(EffectBundle {
         bundle: (
-            Lifetime::from_seconds(4.0), // The duration of the effect.
-            Delay::from_seconds(1.0),    // The time between damage ticks.
+            Lifetime::from_seconds(3.0), // The duration of the effect.
+            Delay::from_seconds(1.0) // The time between damage ticks.
+                .trigger_immediately(), // Make damage tick immediately when the effect is applied.
             Poison { damage: 1 },        // The amount of damage to apply per tick.
         ),
         ..default()

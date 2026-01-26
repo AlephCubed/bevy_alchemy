@@ -139,7 +139,7 @@ impl Default for Lifetime {
     }
 }
 
-/// A repeating timer used for the delay between effect applications.  
+/// A repeating timer used for the delay between effect applications.
 #[derive(Component, Reflect, Eq, PartialEq, Debug, Clone)]
 #[reflect(Component, PartialEq, Debug, Clone)]
 pub struct Delay {
@@ -150,6 +150,16 @@ pub struct Delay {
 }
 
 impl_effect_timer!(Delay, TimerMode::Repeating);
+
+impl Delay {
+    /// Makes the timer [almost finished](Timer::almost_finish), leaving 1ns of remaining time.
+    /// This allows effects to trigger immediately when applied.
+    #[doc(alias = "trigger_on_start", alias = "almost_finish")]
+    pub fn trigger_immediately(mut self) -> Self {
+        self.timer.almost_finish();
+        self
+    }
+}
 
 impl Default for Delay {
     fn default() -> Self {
