@@ -30,8 +30,7 @@ pub fn merge_effect_timer<T: EffectTimer + Component<Mutability = Mutable> + Clo
     new.get_mut::<T>().unwrap().merge(&outgoing);
 }
 
-// Todo With more getters/settings, `merge` could have a default implementation.
-/// A timer which is used for status effects and includes a [`TimerMergeMode`].
+/// A [timer](Timer) which is used for status effects and includes a [`TimerMergeMode`].
 pub trait EffectTimer: Sized {
     /// Creates a new timer from a duration.
     fn new(duration: Duration) -> Self;
@@ -44,9 +43,44 @@ pub trait EffectTimer: Sized {
     /// A builder that overwrites the current merge mode with a new value.
     fn with_mode(self, mode: TimerMergeMode) -> Self;
 
-    /// Merges a new timer (self) with the old one (other).
+    /// Returns reference to the internal timer.
+    fn get_timer(&self) -> &Timer;
+
+    /// Returns mutable reference to the internal timer.
+    fn get_timer_mut(&mut self) -> &mut Timer;
+
+    /// Returns reference to the timer's merge mode.
+    fn get_mode(&self) -> &TimerMergeMode;
+
+    /// Returns mutable reference to the timer's merge mode.
+    fn get_mode_mut(&mut self) -> &mut TimerMergeMode;
+
+    /// Merges an old timer (self) with the new one (incoming).
     /// Behaviour depends on the current [`TimerMergeMode`].
-    fn merge(&mut self, incoming: &Self);
+    fn merge(&mut self, incoming: &Self) {
+        match self.get_mode() {
+            TimerMergeMode::Replace => {}
+            TimerMergeMode::Keep => *self.get_timer_mut() = incoming.get_timer().clone(),
+            TimerMergeMode::Fraction => {
+                let fraction = incoming.get_timer().fraction();
+                let duration = self.get_timer().duration().as_secs_f32();
+                self.get_timer_mut()
+                    .set_elapsed(Duration::from_secs_f32(fraction * duration));
+            }
+            TimerMergeMode::Max => {
+                let old = incoming.get_timer().remaining_secs();
+                let new = self.get_timer().remaining_secs();
+
+                if old > new {
+                    *self.get_timer_mut() = incoming.get_timer().clone();
+                }
+            }
+            TimerMergeMode::Sum => {
+                let duration = incoming.get_timer().duration() + self.get_timer().duration();
+                self.get_timer_mut().set_duration(duration);
+            }
+        }
+    }
 }
 
 macro_rules! impl_effect_timer {
@@ -64,29 +98,20 @@ macro_rules! impl_effect_timer {
                 self
             }
 
-            fn merge(&mut self, other: &Self) {
-                match self.mode {
-                    TimerMergeMode::Replace => {}
-                    TimerMergeMode::Keep => self.timer = other.timer.clone(),
-                    TimerMergeMode::Fraction => {
-                        let fraction = other.timer.fraction();
-                        let duration = self.timer.duration().as_secs_f32();
-                        self.timer
-                            .set_elapsed(Duration::from_secs_f32(fraction * duration));
-                    }
-                    TimerMergeMode::Max => {
-                        let old = other.timer.remaining_secs();
-                        let new = self.timer.remaining_secs();
+            fn get_timer(&self) -> &Timer {
+                &self.timer
+            }
 
-                        if old > new {
-                            self.timer = other.timer.clone();
-                        }
-                    }
-                    TimerMergeMode::Sum => {
-                        self.timer
-                            .set_duration(other.timer.duration() + self.timer.duration());
-                    }
-                }
+            fn get_timer_mut(&mut self) -> &mut Timer {
+                &mut self.timer
+            }
+
+            fn get_mode(&self) -> &TimerMergeMode {
+                &self.mode
+            }
+
+            fn get_mode_mut(&mut self) -> &mut TimerMergeMode {
+                &mut self.mode
             }
         }
     };
