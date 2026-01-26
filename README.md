@@ -65,14 +65,18 @@ fn deal_poison_damage(
 }
 ```
 
-### Timers
-Two timers are added by the crate: 
-1. `Lifetime` - Despawns the effect when the timer ends.
-2. `Delay` - A repeating timer used for the delay between effect applications.
+### Utility Components
+A handful of components are included that are intended to make it easier to create common effects.
+
+| Component      | Description                                                                   |
+|----------------|-------------------------------------------------------------------------------|
+| `Lifetime`     | A timer that despawns the effect when the timer finishes.                     |
+| `Delay`        | A repeating timer used for the delay between effect applications.             |
+| `EffectStacks` | Tracks the number of times a merge-mode effect has been applied to an entity. |
 
 ### Bevy Version Compatibility
 
-| Bevy   | Bevy Alchemy |
-|--------|--------------|
-| `0.18` | `0.2`        |
-| `0.17` | `0.1`        |
+| Bevy   | Bevy Alchemy  |
+|--------|---------------|
+| `0.18` | `0.2` - `0.3` |
+| `0.17` | `0.1`         |

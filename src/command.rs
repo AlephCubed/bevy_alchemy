@@ -47,7 +47,7 @@ impl<B: Bundle> AddEffectCommand<B> {
     fn merge(self, world: &mut World, existing_entity: Entity) {
         if !world.contains_resource::<EffectMergeRegistry>() {
             warn_once!(
-                "No `EffectComponentMergeRegistry` found. Did you forget to add the `StatusEffectPlugin`?"
+                "No `EffectComponentMergeRegistry` found. Did you forget to add the `AlchemyPlugin`?"
             );
             return;
         }

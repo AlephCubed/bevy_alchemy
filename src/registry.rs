@@ -32,9 +32,8 @@ pub type EffectMergeFn = fn(new: EntityWorldMut, outgoing: Entity);
 ///
 /// fn main() {
 ///     let mut world = World::new();
-///     world.init_resource::<EffectMergeRegistry>();
 ///
-///     world.resource_mut::<EffectMergeRegistry>()
+///     world.get_resource_or_init::<EffectMergeRegistry>()
 ///         .register::<MyEffect>(merge_my_effect);
 /// }
 ///

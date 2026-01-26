@@ -11,12 +11,12 @@ pub(crate) struct StackPlugin;
 impl Plugin for StackPlugin {
     fn build(&self, app: &mut App) {
         app.world_mut()
-            .resource_mut::<EffectMergeRegistry>()
+            .get_resource_or_init::<EffectMergeRegistry>()
             .register::<EffectStacks>(merge_effect_stacks);
     }
 }
 
-/// Tracks the number stacks of a [merge effect](crate::EffectMode::Merge) that have been applied to an entity.
+/// Tracks the number of times a [merge-mode](crate::EffectMode::Merge) effect has been applied to an entity.
 #[derive(Component, Reflect, Eq, PartialEq, Ord, PartialOrd, Debug, Copy, Clone)]
 #[reflect(Component, Default, PartialEq, Debug, Clone)]
 pub struct EffectStacks(pub u8);
@@ -41,6 +41,20 @@ impl DerefMut for EffectStacks {
     }
 }
 
+impl Add for EffectStacks {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self(self.0 + rhs.0)
+    }
+}
+
+impl AddAssign for EffectStacks {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0
+    }
+}
+
 impl Add<u8> for EffectStacks {
     type Output = Self;
 
@@ -55,8 +69,20 @@ impl AddAssign<u8> for EffectStacks {
     }
 }
 
-/// Merge logic for [`EffectStacks`].
-fn merge_effect_stacks(mut new: EntityWorldMut, outgoing: Entity) {
+impl From<u8> for EffectStacks {
+    fn from(value: u8) -> Self {
+        EffectStacks(value)
+    }
+}
+
+impl From<EffectStacks> for u8 {
+    fn from(value: EffectStacks) -> Self {
+        value.0
+    }
+}
+
+/// A [merge function](crate::EffectMergeFn) for the [`EffectStacks`] component.
+pub fn merge_effect_stacks(mut new: EntityWorldMut, outgoing: Entity) {
     let outgoing = *new.world().get::<EffectStacks>(outgoing).unwrap();
     *new.get_mut::<EffectStacks>().unwrap() += outgoing.0;
 }
