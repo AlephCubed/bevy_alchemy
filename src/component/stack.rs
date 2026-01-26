@@ -16,7 +16,7 @@ impl Plugin for StackPlugin {
     }
 }
 
-/// Tracks the number stacks of a [merge effect](crate::EffectMode::Merge) that have been applied to an entity.
+/// Tracks the number of times a [merge-mode](crate::EffectMode::Merge) effect has been applied to an entity.
 #[derive(Component, Reflect, Eq, PartialEq, Ord, PartialOrd, Debug, Copy, Clone)]
 #[reflect(Component, Default, PartialEq, Debug, Clone)]
 pub struct EffectStacks(pub u8);
