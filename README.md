@@ -72,7 +72,7 @@ Two timers are added by the crate:
 
 ### Bevy Version Compatibility
 
-| Bevy   | Bevy Alchemy |
-|--------|--------------|
-| `0.18` | `0.2`        |
-| `0.17` | `0.1`        |
+| Bevy   | Bevy Alchemy  |
+|--------|---------------|
+| `0.18` | `0.2` - `0.3` |
+| `0.17` | `0.1`         |
