@@ -12,7 +12,9 @@ fn init_world() -> World {
     let mut world = World::new();
 
     let mut registry = EffectMergeRegistry::default();
-    register_timer_merge_functions(&mut registry);
+    registry
+        .register::<Lifetime>(merge_effect_timer::<Lifetime>)
+        .register::<Delay>(merge_effect_timer::<Delay>);
 
     world.insert_resource(registry);
 
@@ -41,7 +43,7 @@ fn stack() {
 
     let effects: Vec<u8> = world
         .query::<&MyEffect>()
-        .iter(&mut world)
+        .iter(&world)
         .map(|c| c.0)
         .collect();
 
@@ -70,7 +72,7 @@ fn insert() {
 
     let effects: Vec<u8> = world
         .query::<&MyEffect>()
-        .iter(&mut world)
+        .iter(&world)
         .map(|c| c.0)
         .collect();
 
@@ -108,7 +110,7 @@ fn mixed() {
 
     let effects: Vec<u8> = world
         .query::<&MyEffect>()
-        .iter(&mut world)
+        .iter(&world)
         .map(|c| c.0)
         .collect();
 

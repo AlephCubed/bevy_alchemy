@@ -14,19 +14,15 @@ pub(crate) struct TimerPlugin;
 impl Plugin for TimerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, (despawn_finished_lifetimes, tick_delay).chain());
-        register_timer_merge_functions(&mut app.world_mut().resource_mut::<EffectMergeRegistry>());
+        app.world_mut()
+            .get_resource_or_init::<EffectMergeRegistry>()
+            .register::<Lifetime>(merge_effect_timer::<Lifetime>)
+            .register::<Delay>(merge_effect_timer::<Delay>);
     }
 }
 
-/// Registers the default merge logic for [`Lifetime`] and [`Delay`].
-pub fn register_timer_merge_functions(registry: &mut EffectMergeRegistry) {
-    registry
-        .register::<Lifetime>(merge_timer::<Lifetime>)
-        .register::<Delay>(merge_timer::<Delay>);
-}
-
-/// Merge logic for [`Lifetime`] and [`Delay`].
-fn merge_timer<T: EffectTimer + Component<Mutability = Mutable> + Clone>(
+/// A [merge function](crate::EffectMergeFn) for [`EffectTimer`] components ([`Lifetime`] and [`Delay`]).
+pub fn merge_effect_timer<T: EffectTimer + Component<Mutability = Mutable> + Clone>(
     mut new: EntityWorldMut,
     outgoing: Entity,
 ) {

@@ -11,7 +11,7 @@ pub(crate) struct StackPlugin;
 impl Plugin for StackPlugin {
     fn build(&self, app: &mut App) {
         app.world_mut()
-            .resource_mut::<EffectMergeRegistry>()
+            .get_resource_or_init::<EffectMergeRegistry>()
             .register::<EffectStacks>(merge_effect_stacks);
     }
 }
@@ -55,8 +55,8 @@ impl AddAssign<u8> for EffectStacks {
     }
 }
 
-/// Merge logic for [`EffectStacks`].
-fn merge_effect_stacks(mut new: EntityWorldMut, outgoing: Entity) {
+/// A [merge function](crate::EffectMergeFn) for the [`EffectStacks`] component.
+pub fn merge_effect_stacks(mut new: EntityWorldMut, outgoing: Entity) {
     let outgoing = *new.world().get::<EffectStacks>(outgoing).unwrap();
     *new.get_mut::<EffectStacks>().unwrap() += outgoing.0;
 }
