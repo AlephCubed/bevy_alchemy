@@ -8,7 +8,7 @@
 
 use bevy::prelude::*;
 use bevy_alchemy::*;
-use bevy_auto_plugin::prelude::{AutoPlugin, auto_component, auto_system};
+use bevy_auto_plugin::prelude::{AutoPlugin, auto_plugin_build_hook, auto_system};
 use immediate_stats::*;
 
 fn main() {
@@ -24,7 +24,7 @@ struct DecayingSpeedPlugin;
 
 /// Tracks an entities current movement speed.
 #[derive(Component, StatContainer)]
-#[auto_component(plugin = DecayingSpeedPlugin)]
+#[auto_plugin_build_hook(plugin = DecayingSpeedPlugin, hook = ResetComponentHook)]
 struct MovementSpeed(Stat);
 
 /// Applies a speed boost, which decreases throughout its duration.

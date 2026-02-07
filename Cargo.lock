@@ -544,9 +544,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_auto_plugin"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b00355e2dd268a7f9c7453773753edfedda475896c0b4e7b2d015aa04f4849fd"
+checksum = "f3c7761957a70588bf0b7c6120c97a47620dab684a622a0aa0a8c5c9161becd6"
 dependencies = [
  "bevy_auto_plugin_proc_macros",
  "bevy_auto_plugin_shared",
@@ -556,9 +556,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_auto_plugin_proc_macros"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d85f2558b3a8f3d5e3e8df9debbff0665cad6c7c2bfde3537e7ff247fde3cd8f"
+checksum = "582998ec7135267343cdcfc441128b73bbc995be640e48e046e2a33f3ff5703f"
 dependencies = [
  "bevy_auto_plugin_shared",
  "proc-macro2",
@@ -566,12 +566,12 @@ dependencies = [
 
 [[package]]
 name = "bevy_auto_plugin_shared"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6d825af42f08348a7c2307f50aabde362e774dd906c274556bd6b71794c8476"
+checksum = "999eb3756d075ac95e169f71333ac211e54e961ac55708a89731eb6134f38b7e"
 dependencies = [
  "bevy_app",
- "darling 0.21.3",
+ "darling",
  "inventory",
  "linkme",
  "log",
@@ -2264,18 +2264,8 @@ version = "0.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9cdf337090841a411e2a7f3deb9187445851f91b309c0c0a29e05f74a00a48c0"
 dependencies = [
- "darling_core 0.21.3",
- "darling_macro 0.21.3",
-]
-
-[[package]]
-name = "darling"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25ae13da2f202d56bd7f91c25fba009e7717a1e4a1cc98a76d844b65ae912e9d"
-dependencies = [
- "darling_core 0.23.0",
- "darling_macro 0.23.0",
+ "darling_core",
+ "darling_macro",
 ]
 
 [[package]]
@@ -2293,36 +2283,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "darling_core"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9865a50f7c335f53564bb694ef660825eb8610e0a53d3e11bf1b0d3df31e03b0"
-dependencies = [
- "ident_case",
- "proc-macro2",
- "quote",
- "strsim",
- "syn 2.0.111",
-]
-
-[[package]]
 name = "darling_macro"
 version = "0.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d38308df82d1080de0afee5d069fa14b0326a88c14f15c5ccda35b4a6c414c81"
 dependencies = [
- "darling_core 0.21.3",
- "quote",
- "syn 2.0.111",
-]
-
-[[package]]
-name = "darling_macro"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac3984ec7bd6cfa798e62b4a642426a5be0e68f9401cfc2a01e3fa9ea2fcdb8d"
-dependencies = [
- "darling_core 0.23.0",
+ "darling_core",
  "quote",
  "syn 2.0.111",
 ]
@@ -3014,9 +2980,9 @@ dependencies = [
 
 [[package]]
 name = "immediate_stats"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8619adda62694b9bf085e6134215a9439279a6cb4b305ea008f89cedf9828a6"
+checksum = "d2e9bfbd15d2ae09094aa16193e6f603b5f721d9ebaa6918fa112389c44b59c4"
 dependencies = [
  "bevy_app",
  "bevy_auto_plugin",
@@ -3027,11 +2993,10 @@ dependencies = [
 
 [[package]]
 name = "immediate_stats_macros"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf0252f42204daee69054e2f4d8b102a99f9c1065cbc9e9826a0dfaef226aa22"
+checksum = "94770b216cb1e5a378d3501e63314242e754c1b2c776fa1d9645eaec03fce0b0"
 dependencies = [
- "darling 0.23.0",
  "proc-macro-error",
  "proc-macro2",
  "quote",
