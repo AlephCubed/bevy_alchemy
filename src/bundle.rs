@@ -1,4 +1,3 @@
-use crate::EffectMode;
 use bevy_ecs::prelude::*;
 
 /// A "bundle" of components/settings used when applying an effect.
@@ -14,11 +13,4 @@ use bevy_ecs::prelude::*;
 /// ### [`EffectedBy::spawn`](SpawnRelated::spawn)
 #[doc = include_str!("../docs/effected_by_spawn_example.md")]
 #[derive(Default)]
-pub struct EffectBundle<B: Bundle> {
-    /// The name/ID of the effect. Effects with different IDs have no effect on one another.
-    pub name: Name,
-    /// Describes the logic used when new effect collides with an existing one.
-    pub mode: EffectMode,
-    /// Components that will be added to the effect. This is where the actual effect components get added.
-    pub bundle: B,
-}
+pub struct EffectBundle<B: Bundle>(pub B);

@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 mod bundle;
+mod bundle_inspector;
 mod command;
 mod component;
 mod registry;
@@ -11,6 +12,7 @@ use bevy_ecs::prelude::*;
 use bevy_reflect::Reflect;
 use bevy_reflect::prelude::ReflectDefault;
 
+use crate::bundle_inspector::BundleInspector;
 pub use bundle::*;
 pub use command::*;
 pub use component::*;
@@ -28,6 +30,7 @@ impl Plugin for AlchemyPlugin {
             .register_type::<Lifetime>()
             .register_type::<Delay>()
             .register_type::<TimerMergeMode>()
+            .init_resource::<BundleInspector>()
             .init_resource::<EffectMergeRegistry>()
             .add_plugins(TimerPlugin)
             .add_plugins(StackPlugin);
