@@ -6,7 +6,7 @@ use bevy_ecs::name::Name;
 use bevy_ecs::prelude::{Component, Entity, SpawnRelated};
 use criterion::{Criterion, criterion_group, criterion_main};
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 struct BenchEffect;
 
 fn init_app() -> (App, Entity) {
@@ -17,11 +17,11 @@ fn init_app() -> (App, Entity) {
         .world_mut()
         .spawn((
             Name::new("Target"),
-            EffectedBy::spawn(EffectBundle {
-                name: Name::new("Effect"),
-                mode: EffectMode::Insert,
-                bundle: BenchEffect,
-            }),
+            EffectedBy::spawn(EffectBundle((
+                Name::new("Effect"),
+                EffectMode::Insert,
+                BenchEffect,
+            ))),
         ))
         .id();
 
@@ -33,14 +33,11 @@ fn with_effect(c: &mut Criterion) {
 
     c.bench_function("Insert mode matched `with_effect`", |b| {
         b.iter(|| {
-            app.world_mut()
-                .commands()
-                .entity(entity)
-                .with_effect(EffectBundle {
-                    name: Name::new("Effect"),
-                    mode: EffectMode::Insert,
-                    bundle: BenchEffect,
-                });
+            app.world_mut().commands().entity(entity).with_effect((
+                Name::new("Effect"),
+                EffectMode::Insert,
+                BenchEffect,
+            ));
             app.world_mut().flush();
         })
     });
@@ -54,11 +51,11 @@ fn related_spawner(c: &mut Criterion) {
             app.world_mut()
                 .commands()
                 .entity(entity)
-                .insert(EffectedBy::spawn(EffectBundle {
-                    name: Name::new("Effect"),
-                    mode: EffectMode::Insert,
-                    bundle: BenchEffect,
-                }));
+                .insert(EffectedBy::spawn(EffectBundle((
+                    Name::new("Effect"),
+                    EffectMode::Insert,
+                    BenchEffect,
+                ))));
             app.world_mut().flush();
         })
     });

@@ -2,7 +2,7 @@
 # use bevy::prelude::*;
 # use bevy_alchemy::*;
 #
-# #[derive(Component, Default)]
+# #[derive(Component, Default, Clone)]
 # struct MyEffect;
 #
 # fn main() {
@@ -11,11 +11,9 @@
 #   let mut commands = world.commands();
 commands.spawn((
     Name::new("Target"),
-    EffectedBy::spawn(EffectBundle {
-        name: Name::new("Effect"),
-        bundle: MyEffect,
-        ..default()
-    }),
+    EffectedBy::spawn(
+        EffectBundle((Name::new("Effect"), MyEffect))
+    ),
 ));
 # }
 ```

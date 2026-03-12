@@ -9,8 +9,8 @@
 
 use bevy::prelude::*;
 use bevy_alchemy::{
-    AlchemyPlugin, Delay, EffectBundle, EffectCommandsExt, EffectMode, EffectStacks, EffectTimer,
-    Effecting, Lifetime,
+    AlchemyPlugin, Delay, EffectCommandsExt, EffectMode, EffectStacks, EffectTimer, Effecting,
+    Lifetime,
 };
 
 fn main() {
@@ -26,7 +26,7 @@ fn main() {
 struct Health(i32);
 
 /// Deals damage over time to the target entity.
-#[derive(Component, Default)]
+#[derive(Component, Default, Clone)]
 struct Poison {
     damage: i32,
 }
@@ -48,17 +48,14 @@ fn on_space_pressed(
         return;
     }
 
-    commands.entity(*target).with_effect(EffectBundle {
-        mode: EffectMode::Merge, // Stack tracking requires effect merging.
-        bundle: (
-            EffectStacks::default(),     // Enable stack tracking.
-            Lifetime::from_seconds(3.0), // The duration of the effect.
-            Delay::from_seconds(1.0) // The time between damage ticks.
-                .trigger_immediately(), // Make damage tick immediately when the effect is applied.
-            Poison { damage: 5 },        // The amount of damage to apply per tick.
-        ),
-        ..default()
-    });
+    commands.entity(*target).with_effect((
+        EffectMode::Merge,           // Stack tracking requires effect merging.
+        EffectStacks::default(),     // Enable stack tracking.
+        Lifetime::from_seconds(3.0), // The duration of the effect.
+        Delay::from_seconds(1.0) // The time between damage ticks.
+            .trigger_immediately(), // Make damage tick immediately when the effect is applied.
+        Poison { damage: 5 },        // The amount of damage to apply per tick.
+    ));
 }
 
 /// Runs every frame and deals the poison damage.

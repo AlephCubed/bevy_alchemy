@@ -26,7 +26,7 @@ fn main() {
 struct MovementSpeed(Stat);
 
 /// Applies a speed boost, which decreases throughout its duration.
-#[derive(Component, Default)]
+#[derive(Component, Default, Clone)]
 struct DecayingSpeed {
     start_speed_boost: Modifier,
 }
@@ -48,19 +48,16 @@ fn on_space_pressed(
         return;
     }
 
-    commands.entity(*target).with_effect(EffectBundle {
-        mode: EffectMode::Insert, // Block having multiple of effect stacked on a single target.
-        bundle: (
-            Lifetime::from_seconds(2.0), // The duration of the effect.
-            DecayingSpeed {
-                start_speed_boost: Modifier {
-                    bonus: 10,
-                    multiplier: 2.0,
-                },
+    commands.entity(*target).with_effect((
+        EffectMode::Insert, // Block having multiple of effect stacked on a single target.
+        Lifetime::from_seconds(2.0), // The duration of the effect.
+        DecayingSpeed {
+            start_speed_boost: Modifier {
+                bonus: 10,
+                multiplier: 2.0,
             },
-        ),
-        ..default()
-    });
+        },
+    ));
 }
 
 /// Applies the effect to the target. Because of how Immediate Stats works, this needs to run every frame.

@@ -3,7 +3,7 @@
 use bevy_alchemy::*;
 use bevy_ecs::prelude::*;
 
-#[derive(Component, Debug, Eq, PartialEq, Default)]
+#[derive(Component, Debug, Eq, PartialEq, Default, Clone)]
 struct MyEffect(u8);
 
 #[test]
@@ -12,16 +12,7 @@ fn spawnable_list_stack() {
 
     world.spawn((
         Name::new("Target"),
-        EffectedBy::spawn((
-            EffectBundle {
-                bundle: MyEffect(0),
-                ..Default::default()
-            },
-            EffectBundle {
-                bundle: MyEffect(1),
-                ..Default::default()
-            },
-        )),
+        EffectedBy::spawn((EffectBundle(MyEffect(0)), EffectBundle(MyEffect(1)))),
     ));
 
     world.flush();
@@ -43,16 +34,8 @@ fn spawnable_list_insert() {
     world.spawn((
         Name::new("Target"),
         EffectedBy::spawn((
-            EffectBundle {
-                mode: EffectMode::Insert,
-                bundle: MyEffect(0),
-                ..Default::default()
-            },
-            EffectBundle {
-                mode: EffectMode::Insert,
-                bundle: MyEffect(1),
-                ..Default::default()
-            },
+            EffectBundle((EffectMode::Insert, MyEffect(0))),
+            EffectBundle((EffectMode::Insert, MyEffect(1))),
         )),
     ));
 
@@ -75,24 +58,10 @@ fn spawnable_list_mixed() {
     world.spawn((
         Name::new("Target"),
         EffectedBy::spawn((
-            EffectBundle {
-                bundle: MyEffect(0),
-                ..Default::default()
-            },
-            EffectBundle {
-                bundle: MyEffect(1),
-                ..Default::default()
-            },
-            EffectBundle {
-                mode: EffectMode::Insert,
-                bundle: MyEffect(2),
-                ..Default::default()
-            },
-            EffectBundle {
-                mode: EffectMode::Insert,
-                bundle: MyEffect(3),
-                ..Default::default()
-            },
+            EffectBundle(MyEffect(0)),
+            EffectBundle(MyEffect(1)),
+            EffectBundle((EffectMode::Insert, MyEffect(2))),
+            EffectBundle((EffectMode::Insert, MyEffect(3))),
         )),
     ));
 
