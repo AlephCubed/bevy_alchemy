@@ -28,7 +28,13 @@ struct Poison {
 /// Spawn a target on startup.
 fn init_scene(mut commands: Commands) {
     commands.spawn((Name::new("Target"), Health(100)));
-    commands.spawn(Text::default());
+    commands.spawn((
+        Node {
+            margin: UiRect::all(Val::Px(10.0)),
+            ..default()
+        },
+        Text::default(),
+    ));
     commands.spawn(Camera2d);
 }
 
