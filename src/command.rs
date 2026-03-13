@@ -1,11 +1,8 @@
-use crate::bundle::EffectBundle;
 use crate::bundle_inspector::BundleInspector;
 use crate::registry::{EffectMergeFn, EffectMergeRegistry};
 use crate::{EffectMode, EffectedBy, Effecting};
 use bevy_ecs::entity_disabling::Disabled;
 use bevy_ecs::prelude::*;
-use bevy_ecs::ptr::MovingPtr;
-use bevy_ecs::spawn::SpawnableList;
 use bevy_log::warn_once;
 use std::any::TypeId;
 
@@ -139,21 +136,6 @@ impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
             }
             EffectMode::Merge => self.merge(world, old_entity),
         }
-    }
-}
-
-// Todo This is probably bad practice/has larger performance cost.
-impl<B: Bundle + Clone> SpawnableList<Effecting> for EffectBundle<B> {
-    fn spawn(this: MovingPtr<'_, Self>, world: &mut World, target: Entity) {
-        let bundle = this.read();
-        world.commands().queue(AddEffectCommand {
-            target,
-            bundle: bundle.0,
-        });
-    }
-
-    fn size_hint(&self) -> usize {
-        0
     }
 }
 

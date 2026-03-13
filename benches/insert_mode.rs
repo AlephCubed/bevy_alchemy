@@ -1,6 +1,6 @@
 //! Benchmarks for applying insert-mode effects.
 
-use bevy_alchemy::{AlchemyPlugin, EffectBundle, EffectCommandsExt, EffectMode, EffectedBy};
+use bevy_alchemy::{AlchemyPlugin, Effect, EffectCommandsExt, EffectMode, EffectedBy};
 use bevy_app::App;
 use bevy_ecs::name::Name;
 use bevy_ecs::prelude::{Component, Entity, SpawnRelated};
@@ -17,7 +17,7 @@ fn init_app() -> (App, Entity) {
         .world_mut()
         .spawn((
             Name::new("Target"),
-            EffectedBy::spawn(EffectBundle((
+            EffectedBy::spawn(Effect((
                 Name::new("Effect"),
                 EffectMode::Insert,
                 BenchEffect,
@@ -51,7 +51,7 @@ fn related_spawner(c: &mut Criterion) {
             app.world_mut()
                 .commands()
                 .entity(entity)
-                .insert(EffectedBy::spawn(EffectBundle((
+                .insert(EffectedBy::spawn(Effect((
                     Name::new("Effect"),
                     EffectMode::Insert,
                     BenchEffect,

@@ -1,6 +1,6 @@
 //! Benchmarks for applying stack-mode effects.
 
-use bevy_alchemy::{AlchemyPlugin, EffectBundle, EffectCommandsExt, EffectMode, EffectedBy};
+use bevy_alchemy::{AlchemyPlugin, Effect, EffectCommandsExt, EffectMode, EffectedBy};
 use bevy_app::App;
 use bevy_ecs::name::Name;
 use bevy_ecs::prelude::{Component, Entity, SpawnRelated};
@@ -41,7 +41,7 @@ fn related_spawner(c: &mut Criterion) {
             app.world_mut()
                 .commands()
                 .entity(entity)
-                .insert(EffectedBy::spawn(EffectBundle((
+                .insert(EffectedBy::spawn(Effect((
                     Name::new("Effect"),
                     EffectMode::Stack,
                     BenchEffect,

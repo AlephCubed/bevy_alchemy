@@ -12,7 +12,7 @@ fn spawnable_list_stack() {
 
     world.spawn((
         Name::new("Target"),
-        EffectedBy::spawn((EffectBundle(MyEffect(0)), EffectBundle(MyEffect(1)))),
+        EffectedBy::spawn((Effect(MyEffect(0)), Effect(MyEffect(1)))),
     ));
 
     world.flush();
@@ -34,8 +34,8 @@ fn spawnable_list_insert() {
     world.spawn((
         Name::new("Target"),
         EffectedBy::spawn((
-            EffectBundle((EffectMode::Insert, MyEffect(0))),
-            EffectBundle((EffectMode::Insert, MyEffect(1))),
+            Effect((EffectMode::Insert, MyEffect(0))),
+            Effect((EffectMode::Insert, MyEffect(1))),
         )),
     ));
 
@@ -58,10 +58,10 @@ fn spawnable_list_mixed() {
     world.spawn((
         Name::new("Target"),
         EffectedBy::spawn((
-            EffectBundle(MyEffect(0)),
-            EffectBundle(MyEffect(1)),
-            EffectBundle((EffectMode::Insert, MyEffect(2))),
-            EffectBundle((EffectMode::Insert, MyEffect(3))),
+            Effect(MyEffect(0)),
+            Effect(MyEffect(1)),
+            Effect((EffectMode::Insert, MyEffect(2))),
+            Effect((EffectMode::Insert, MyEffect(3))),
         )),
     ));
 

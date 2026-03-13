@@ -12,7 +12,7 @@
 commands.spawn((
     Name::new("Target"),
     EffectedBy::spawn(
-        EffectBundle((Name::new("Effect"), MyEffect))
+        Effect((Name::new("Effect"), MyEffect))
     ),
 ));
 # }

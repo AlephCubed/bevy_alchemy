@@ -1,4 +1,7 @@
+use crate::{AddEffectCommand, Effecting};
 use bevy_ecs::prelude::*;
+use bevy_ecs::ptr::MovingPtr;
+use bevy_ecs::spawn::SpawnableList;
 
 /// A "bundle" of components/settings used when applying an effect.
 /// Due to technical limitations, this doesn't actually implement [`Bundle`].
@@ -13,4 +16,19 @@ use bevy_ecs::prelude::*;
 /// ### [`EffectedBy::spawn`](SpawnRelated::spawn)
 #[doc = include_str!("../docs/effected_by_spawn_example.md")]
 #[derive(Default)]
-pub struct EffectBundle<B: Bundle>(pub B);
+pub struct Effect<B: Bundle>(pub B);
+
+// Todo This is probably bad practice/has larger performance cost.
+impl<B: Bundle + Clone> SpawnableList<Effecting> for Effect<B> {
+    fn spawn(this: MovingPtr<'_, Self>, world: &mut World, target: Entity) {
+        let bundle = this.read();
+        world.commands().queue(AddEffectCommand {
+            target,
+            bundle: bundle.0,
+        });
+    }
+
+    fn size_hint(&self) -> usize {
+        0
+    }
+}

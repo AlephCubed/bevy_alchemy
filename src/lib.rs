@@ -1,11 +1,11 @@
 #![doc = include_str!("../README.md")]
 
-mod bundle;
 mod bundle_inspector;
 mod command;
 mod component;
 mod registry;
 mod relation;
+mod spawnable_list;
 
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
@@ -13,11 +13,11 @@ use bevy_reflect::Reflect;
 use bevy_reflect::prelude::ReflectDefault;
 
 use crate::bundle_inspector::BundleInspector;
-pub use bundle::*;
 pub use command::*;
 pub use component::*;
 pub use registry::*;
 pub use relation::*;
+pub use spawnable_list::*;
 
 /// Setup required types and systems for `bevy_alchemy`.
 pub struct AlchemyPlugin;
