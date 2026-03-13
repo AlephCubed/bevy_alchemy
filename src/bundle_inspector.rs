@@ -1,5 +1,6 @@
 use crate::EffectMode;
 use bevy_ecs::prelude::{Bundle, Entity, Name, Resource, World};
+use bevy_ecs::relationship::RelationshipHookMode;
 
 #[derive(Resource)]
 pub(crate) struct BundleInspector {
@@ -21,7 +22,9 @@ impl Default for BundleInspector {
 impl BundleInspector {
     pub fn get_effect_meta<B: Bundle>(&mut self, bundle: B) -> (Option<Name>, EffectMode) {
         let e = self.scratch_entity;
-        self.world.entity_mut(e).insert(bundle);
+        self.world
+            .entity_mut(e)
+            .insert_with_relationship_hook_mode(bundle, RelationshipHookMode::Skip);
 
         let name = self.world.entity(e).get::<Name>().cloned();
 

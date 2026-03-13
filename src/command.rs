@@ -96,10 +96,7 @@ impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
             return;
         }
 
-        let Some(effected_by) = world
-            .get::<EffectedBy>(self.target)
-            .map(|e| e.collection().clone())
-        else {
+        let Some(effected_by) = world.get::<EffectedBy>(self.target).map(|e| e.collection()) else {
             world.spawn(self.bundle_full());
             return;
         };
@@ -117,7 +114,7 @@ impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
 
             let other_name = world.get::<Name>(*entity);
 
-            if name == other_name.cloned() {
+            if name.as_ref() == other_name {
                 return Some(*entity);
             }
 
@@ -132,7 +129,7 @@ impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
         match mode {
             EffectMode::Stack => unreachable!(),
             EffectMode::Insert => {
-                world.entity_mut(old_entity).insert(self.bundle_full());
+                world.entity_mut(old_entity).insert(self.bundle);
             }
             EffectMode::Merge => self.merge(world, old_entity),
         }
