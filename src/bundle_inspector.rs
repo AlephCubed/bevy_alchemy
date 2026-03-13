@@ -40,3 +40,67 @@ impl BundleInspector {
         (name, mode)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Effecting;
+
+    #[test]
+    fn get_effect_meta() {
+        let mut inspector = BundleInspector::default();
+
+        let name = Name::new("Effect");
+        let mode = EffectMode::Insert;
+
+        assert_eq!(
+            inspector.get_effect_meta((name.clone(), mode)),
+            (Some(name), mode)
+        );
+    }
+
+    #[test]
+    fn get_effect_meta_no_name() {
+        let mut inspector = BundleInspector::default();
+
+        let mode = EffectMode::Insert;
+
+        assert_eq!(inspector.get_effect_meta(mode), (None, mode));
+    }
+
+    #[test]
+    fn get_effect_meta_no_mode() {
+        let mut inspector = BundleInspector::default();
+
+        let name = Name::new("Effect");
+
+        assert_eq!(
+            inspector.get_effect_meta(name.clone()),
+            (Some(name), EffectMode::default())
+        );
+    }
+
+    #[test]
+    fn get_effect_meta_nothing() {
+        let mut inspector = BundleInspector::default();
+
+        assert_eq!(inspector.get_effect_meta(()), (None, EffectMode::default()));
+    }
+
+    #[test]
+    fn get_effect_mode_with_relation() {
+        let mut inspector = BundleInspector::default();
+
+        let name = Name::new("Effect");
+        let mode = EffectMode::Insert;
+
+        assert_eq!(
+            inspector.get_effect_meta((
+                name.clone(),
+                mode,
+                Effecting(Entity::from_raw_u32(32).unwrap())
+            )),
+            (Some(name), mode)
+        );
+    }
+}
