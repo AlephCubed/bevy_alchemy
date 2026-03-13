@@ -177,7 +177,7 @@ pub trait EffectCommandsExt {
     #[doc = include_str!("../docs/with_effect_example.md")]
     fn with_effect<B: Bundle + Clone>(&mut self, bundle: B) -> &mut Self;
 
-    /// Applies effects to this entity by taking a function that operates on a [`EffectSpawner`].
+    /// Applies effects to this entity by taking a function that operates on an [`EffectSpawner`].
     ///
     /// For applying a single effect, see [`with_effect`](Self::with_effect).
     ///
