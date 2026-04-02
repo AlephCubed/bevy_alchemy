@@ -1,10 +1,8 @@
-use crate::bundle::EffectBundle;
+use crate::bundle_inspector::BundleInspector;
 use crate::registry::{EffectMergeFn, EffectMergeRegistry};
 use crate::{EffectMode, EffectedBy, Effecting};
 use bevy_ecs::entity_disabling::Disabled;
 use bevy_ecs::prelude::*;
-use bevy_ecs::ptr::MovingPtr;
-use bevy_ecs::spawn::SpawnableList;
 use bevy_log::warn_once;
 use std::any::TypeId;
 
@@ -17,24 +15,12 @@ pub struct AddEffectCommand<B: Bundle> {
     /// The entity to apply the effect to.
     pub target: Entity,
     /// The effect to apply.
-    pub bundle: EffectBundle<B>,
+    pub bundle: B,
 }
 
 impl<B: Bundle> AddEffectCommand<B> {
-    fn spawn(self, world: &mut World) -> Entity {
-        let entity = world.spawn_empty();
-        let id = entity.id();
-        self.insert(entity);
-        id
-    }
-
-    fn insert(self, mut entity: EntityWorldMut) {
-        entity.insert((
-            Effecting(self.target),
-            self.bundle.name,
-            self.bundle.mode,
-            self.bundle.bundle,
-        ));
+    fn bundle_full(self) -> (Effecting, B) {
+        (Effecting(self.target), self.bundle)
     }
 
     /// Inserts into the existing entity, and then merges the old effect into it using [`EffectMergeRegistry`].
@@ -70,7 +56,7 @@ impl<B: Bundle> AddEffectCommand<B> {
             temp
         };
 
-        self.insert(world.entity_mut(new_effect));
+        world.entity_mut(new_effect).insert(self.bundle);
 
         // Call merge function on those copied components.
         {
@@ -100,18 +86,18 @@ impl<B: Bundle> AddEffectCommand<B> {
     }
 }
 
-impl<B: Bundle> Command for AddEffectCommand<B> {
+impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
     fn apply(self, world: &mut World) {
-        if self.bundle.mode == EffectMode::Stack {
-            self.spawn(world);
+        let mut inspector = world.get_resource_or_init::<BundleInspector>();
+        let (name, mode) = inspector.get_effect_meta(self.bundle.clone());
+
+        if mode == EffectMode::Stack {
+            world.spawn(self.bundle_full());
             return;
         }
 
-        let Some(effected_by) = world
-            .get::<EffectedBy>(self.target)
-            .map(|e| e.collection().clone())
-        else {
-            self.spawn(world);
+        let Some(effected_by) = world.get::<EffectedBy>(self.target).map(|e| e.collection()) else {
+            world.spawn(self.bundle_full());
             return;
         };
 
@@ -122,13 +108,13 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
             let other_mode = world.get::<EffectMode>(*entity)?;
 
             // Todo Think more about.
-            if self.bundle.mode != *other_mode {
+            if mode != *other_mode {
                 return None;
             }
 
-            let name = world.get::<Name>(*entity)?;
+            let other_name = world.get::<Name>(*entity);
 
-            if name == &self.bundle.name {
+            if name.as_ref() == other_name {
                 return Some(*entity);
             }
 
@@ -136,27 +122,17 @@ impl<B: Bundle> Command for AddEffectCommand<B> {
         });
 
         let Some(old_entity) = old_entity else {
-            self.spawn(world);
+            world.spawn(self.bundle_full());
             return;
         };
 
-        match self.bundle.mode {
+        match mode {
             EffectMode::Stack => unreachable!(),
-            EffectMode::Insert => self.insert(world.entity_mut(old_entity)),
+            EffectMode::Insert => {
+                world.entity_mut(old_entity).insert(self.bundle);
+            }
             EffectMode::Merge => self.merge(world, old_entity),
         }
-    }
-}
-
-// Todo This is probably bad practice/has larger performance cost.
-impl<B: Bundle> SpawnableList<Effecting> for EffectBundle<B> {
-    fn spawn(this: MovingPtr<'_, Self>, world: &mut World, target: Entity) {
-        let bundle = this.read();
-        world.commands().queue(AddEffectCommand { target, bundle });
-    }
-
-    fn size_hint(&self) -> usize {
-        0
     }
 }
 
@@ -179,7 +155,7 @@ impl<'a> EffectSpawner<'a> {
     ///
     /// # Example
     #[doc = include_str!("../docs/with_effects_example.md")]
-    pub fn spawn<B: Bundle>(&mut self, bundle: EffectBundle<B>) {
+    pub fn spawn<B: Bundle + Clone>(&mut self, bundle: B) {
         self.commands.queue(AddEffectCommand {
             target: self.target,
             bundle,
@@ -196,9 +172,9 @@ pub trait EffectCommandsExt {
     ///
     /// # Example
     #[doc = include_str!("../docs/with_effect_example.md")]
-    fn with_effect<B: Bundle>(&mut self, bundle: EffectBundle<B>) -> &mut Self;
+    fn with_effect<B: Bundle + Clone>(&mut self, bundle: B) -> &mut Self;
 
-    /// Applies effects to this entity by taking a function that operates on a [`EffectSpawner`].
+    /// Applies effects to this entity by taking a function that operates on an [`EffectSpawner`].
     ///
     /// For applying a single effect, see [`with_effect`](Self::with_effect).
     ///
@@ -208,7 +184,7 @@ pub trait EffectCommandsExt {
 }
 
 impl EffectCommandsExt for EntityCommands<'_> {
-    fn with_effect<B: Bundle>(&mut self, bundle: EffectBundle<B>) -> &mut Self {
+    fn with_effect<B: Bundle + Clone>(&mut self, bundle: B) -> &mut Self {
         let target = self.id();
         self.commands().queue(AddEffectCommand { target, bundle });
         self

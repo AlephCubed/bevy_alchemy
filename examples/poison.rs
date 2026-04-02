@@ -5,9 +5,7 @@
 //! The `poison_falloff` example shows a different way to handle effect stacking.
 
 use bevy::prelude::*;
-use bevy_alchemy::{
-    AlchemyPlugin, Delay, EffectBundle, EffectCommandsExt, EffectTimer, Effecting, Lifetime,
-};
+use bevy_alchemy::{AlchemyPlugin, Delay, EffectCommandsExt, EffectTimer, Effecting, Lifetime};
 
 fn main() {
     App::new()
@@ -22,7 +20,7 @@ fn main() {
 struct Health(i32);
 
 /// Deals damage over time to the target entity.
-#[derive(Component, Default)]
+#[derive(Component, Default, Clone)]
 struct Poison {
     damage: i32,
 }
@@ -30,7 +28,13 @@ struct Poison {
 /// Spawn a target on startup.
 fn init_scene(mut commands: Commands) {
     commands.spawn((Name::new("Target"), Health(100)));
-    commands.spawn(Text::default());
+    commands.spawn((
+        Node {
+            margin: UiRect::all(Val::Px(10.0)),
+            ..default()
+        },
+        Text::default(),
+    ));
     commands.spawn(Camera2d);
 }
 
@@ -44,15 +48,12 @@ fn on_space_pressed(
         return;
     }
 
-    commands.entity(*target).with_effect(EffectBundle {
-        bundle: (
-            Lifetime::from_seconds(3.0), // The duration of the effect.
-            Delay::from_seconds(1.0) // The time between damage ticks.
-                .trigger_immediately(), // Make damage tick immediately when the effect is applied.
-            Poison { damage: 1 },        // The amount of damage to apply per tick.
-        ),
-        ..default()
-    });
+    commands.entity(*target).with_effect((
+        Lifetime::from_seconds(3.0), // The duration of the effect.
+        Delay::from_seconds(1.0) // The time between damage ticks.
+            .trigger_immediately(), // Make damage tick immediately when the effect is applied.
+        Poison { damage: 1 },        // The amount of damage to apply per tick.
+    ));
 }
 
 /// Runs every frame and deals the poison damage.

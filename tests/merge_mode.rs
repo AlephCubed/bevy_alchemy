@@ -5,7 +5,7 @@ use bevy_ecs::prelude::*;
 use bevy_time::*;
 use std::time::Duration;
 
-#[derive(Component, Debug, Eq, PartialEq, Default)]
+#[derive(Component, Debug, Eq, PartialEq, Default, Clone)]
 struct MyEffect(u8);
 
 fn init_world() -> World {
@@ -28,15 +28,8 @@ fn stack() {
     let target = world.spawn_empty().id();
 
     world.commands().entity(target).with_effects(|effects| {
-        effects.spawn(EffectBundle {
-            bundle: MyEffect(0),
-            ..Default::default()
-        });
-
-        effects.spawn(EffectBundle {
-            bundle: MyEffect(1),
-            ..Default::default()
-        });
+        effects.spawn(MyEffect(0));
+        effects.spawn(MyEffect(1));
     });
 
     world.flush();
@@ -57,16 +50,14 @@ fn insert() {
 
     let target = world.spawn_empty().id();
 
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Insert,
-        bundle: MyEffect(0),
-        ..Default::default()
-    });
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Insert,
-        bundle: MyEffect(1),
-        ..Default::default()
-    });
+    world
+        .commands()
+        .entity(target)
+        .with_effect((EffectMode::Insert, MyEffect(0)));
+    world
+        .commands()
+        .entity(target)
+        .with_effect((EffectMode::Insert, MyEffect(1)));
 
     world.flush();
 
@@ -86,25 +77,17 @@ fn mixed() {
 
     let target = world.spawn_empty().id();
 
-    world.commands().entity(target).with_effect(EffectBundle {
-        bundle: MyEffect(0),
-        ..Default::default()
-    });
-    world.commands().entity(target).with_effect(EffectBundle {
-        bundle: MyEffect(1),
-        ..Default::default()
-    });
+    world.commands().entity(target).with_effect(MyEffect(0));
+    world.commands().entity(target).with_effect(MyEffect(1));
 
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Insert,
-        bundle: MyEffect(2),
-        ..Default::default()
-    });
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Insert,
-        bundle: MyEffect(3),
-        ..Default::default()
-    });
+    world
+        .commands()
+        .entity(target)
+        .with_effect((EffectMode::Insert, MyEffect(2)));
+    world
+        .commands()
+        .entity(target)
+        .with_effect((EffectMode::Insert, MyEffect(3)));
 
     world.flush();
 
@@ -126,19 +109,16 @@ fn timer_merge_replace() {
 
     let target = world.spawn_empty().id();
     let second_lifetime = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Replace);
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Merge,
-        bundle: (
-            Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Replace),
-            MyEffect(0),
-        ),
-        ..Default::default()
-    });
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Merge,
-        bundle: (second_lifetime.clone(), MyEffect(1)),
-        ..Default::default()
-    });
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Replace),
+        MyEffect(0),
+    ));
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        second_lifetime.clone(),
+        MyEffect(1),
+    ));
 
     world.flush();
 
@@ -158,19 +138,16 @@ fn timer_merge_keep() {
 
     let target = world.spawn_empty().id();
     let first_delay = Delay::from_seconds(1.0).with_mode(TimerMergeMode::Keep);
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Merge,
-        bundle: (first_delay.clone(), MyEffect(0)),
-        ..Default::default()
-    });
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Merge,
-        bundle: (
-            Delay::from_seconds(2.0).with_mode(TimerMergeMode::Keep),
-            MyEffect(1),
-        ),
-        ..Default::default()
-    });
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        first_delay.clone(),
+        MyEffect(0),
+    ));
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        Delay::from_seconds(2.0).with_mode(TimerMergeMode::Keep),
+        MyEffect(1),
+    ));
 
     world.flush();
 
@@ -192,25 +169,19 @@ fn timer_merge_fraction() {
     let mut first_timer = Timer::from_seconds(2.0, TimerMode::Once);
     first_timer.tick(Duration::from_secs_f32(1.0));
 
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Merge,
-        bundle: (
-            Delay {
-                timer: first_timer,
-                mode: TimerMergeMode::Fraction,
-            },
-            MyEffect(0),
-        ),
-        ..Default::default()
-    });
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Merge,
-        bundle: (
-            Delay::from_seconds(10.0).with_mode(TimerMergeMode::Fraction),
-            MyEffect(1),
-        ),
-        ..Default::default()
-    });
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        Delay {
+            timer: first_timer,
+            mode: TimerMergeMode::Fraction,
+        },
+        MyEffect(0),
+    ));
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        Delay::from_seconds(10.0).with_mode(TimerMergeMode::Fraction),
+        MyEffect(1),
+    ));
 
     world.flush();
 
@@ -237,27 +208,20 @@ fn timer_merge_max() {
     let target = world.spawn_empty().id();
     let max = Delay::from_seconds(3.0).with_mode(TimerMergeMode::Max);
 
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Merge,
-        bundle: (
-            Delay::from_seconds(1.0).with_mode(TimerMergeMode::Max),
-            MyEffect(0),
-        ),
-        ..Default::default()
-    });
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Merge,
-        bundle: (max.clone(), MyEffect(1)),
-        ..Default::default()
-    });
-    world.commands().entity(target).with_effect(EffectBundle {
-        mode: EffectMode::Merge,
-        bundle: (
-            Delay::from_seconds(2.0).with_mode(TimerMergeMode::Max),
-            MyEffect(2),
-        ),
-        ..Default::default()
-    });
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        Delay::from_seconds(1.0).with_mode(TimerMergeMode::Max),
+        MyEffect(0),
+    ));
+    world
+        .commands()
+        .entity(target)
+        .with_effect((EffectMode::Merge, max.clone(), MyEffect(1)));
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        Delay::from_seconds(2.0).with_mode(TimerMergeMode::Max),
+        MyEffect(2),
+    ));
 
     world.flush();
 

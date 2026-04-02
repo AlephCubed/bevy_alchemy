@@ -9,23 +9,19 @@ An experimental, status effects-as-entities system for Bevy.
 ### Applying Effects
 Effects can be applied using `with_effect` or `with_effects` (similar to `with_child` and `with_children` respectively).
 ```rust ignore
-commands.entity(target).with_effect(EffectBundle {
-    name: Name::new("Effect"),
-    bundle: MyEffect,
-    ..default()
-});
+commands.entity(target).with_effect((Name::new("Effect"), MyEffect));
 ```
 They can also be added using spawn-style syntax.
 ```rust ignore
 commands.spawn((
     Name::new("Target"),
-    EffectedBy::spawn(EffectBundle {
-        name: Name::new("Effect"),
-        bundle: MyEffect,
-        ..default()
-    }),
+    EffectedBy::spawn(
+        Effect((Name::new("Effect"), MyEffect))
+    ),
 ));
 ```
+
+Note that these methods *might* spawn a new entity, depending on what effects are already applied to the target.
 
 ### Effect Modes
 For some effects it makes sense to allow stacking, so a single entity could be effected by an effect multiple times.
@@ -78,5 +74,5 @@ A handful of components are included that are intended to make it easier to crea
 
 | Bevy   | Bevy Alchemy  |
 |--------|---------------|
-| `0.18` | `0.2` - `0.3` |
+| `0.18` | `0.2` - `0.4` |
 | `0.17` | `0.1`         |
