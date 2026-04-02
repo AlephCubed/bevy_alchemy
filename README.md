@@ -74,5 +74,5 @@ A handful of components are included that are intended to make it easier to crea
 
 | Bevy   | Bevy Alchemy  |
 |--------|---------------|
-| `0.18` | `0.2` - `0.3` |
+| `0.18` | `0.2` - `0.4` |
 | `0.17` | `0.1`         |
