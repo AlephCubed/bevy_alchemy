@@ -48,7 +48,7 @@ pub struct EffectMergeRegistry {
 }
 
 impl EffectMergeRegistry {
-    /// Registers a [`EffectMergeFn`] to be run whenever two `T` status effects are merged.
+    /// Registers a [`EffectMergeFn`] to be run whenever two `T` status effect components are merged.
     pub fn register<T: Component + Clone>(&mut self, f: EffectMergeFn) -> &mut Self {
         self.merges.insert(TypeId::of::<T>(), f);
         self

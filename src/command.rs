@@ -36,7 +36,7 @@ impl<B: Bundle> AddEffectCommand<B> {
             return;
         }
 
-        world.try_resource_scope::<BundleInspector, ()>(|world, mut inspector| {
+        world.try_resource_scope::<BundleInspector, ()>(|world, inspector| {
             world.try_resource_scope::<EffectMergeRegistry, ()>(|world, registry| {
                 let incoming = inspector.get_ref();
 
@@ -73,8 +73,6 @@ impl<B: Bundle> AddEffectCommand<B> {
                 for merge in merge_functions {
                     merge(&mut existing, &incoming);
                 }
-
-                inspector.clear();
             });
         });
     }
@@ -83,7 +81,9 @@ impl<B: Bundle> AddEffectCommand<B> {
 impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
     fn apply(self, world: &mut World) {
         let mut inspector = world.get_resource_or_init::<BundleInspector>();
-        let (name, mode) = inspector.get_effect_meta(self.bundle.clone());
+        let (name, mode) = inspector
+            .stash_bundle(self.bundle.clone())
+            .get_effect_meta();
 
         if mode == EffectMode::Stack {
             world.spawn(self.bundle_full());
@@ -127,6 +127,8 @@ impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
             }
             EffectMode::Merge => self.merge(world, old_entity),
         }
+
+        world.resource_mut::<BundleInspector>().clear();
     }
 }
 

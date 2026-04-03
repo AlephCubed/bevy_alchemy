@@ -27,26 +27,35 @@ impl Default for BundleInspector {
 }
 
 impl BundleInspector {
-    pub fn get_effect_meta<B: Bundle>(&mut self, bundle: B) -> (Option<Name>, EffectMode) {
-        let e = self.scratch_entity;
+    pub fn stash_bundle<B: Bundle>(&mut self, bundle: B) -> &mut Self {
         self.world
-            .entity_mut(e)
+            .entity_mut(self.scratch_entity)
             .insert_with_relationship_hook_mode(bundle, RelationshipHookMode::Skip);
 
-        let name = self.world.entity(e).get::<Name>().cloned();
+        self
+    }
+
+    pub fn clear(&mut self) -> &mut Self {
+        self.world.entity_mut(self.scratch_entity).clear();
+
+        self
+    }
+
+    pub fn get_effect_meta(&self) -> (Option<Name>, EffectMode) {
+        let name = self
+            .world
+            .entity(self.scratch_entity)
+            .get::<Name>()
+            .cloned();
 
         let mode = self
             .world
-            .entity_mut(e)
+            .entity(self.scratch_entity)
             .get::<EffectMode>()
             .copied()
             .unwrap_or_default();
 
         (name, mode)
-    }
-
-    pub fn clear(&mut self) {
-        self.world.entity_mut(self.scratch_entity).clear();
     }
 
     pub fn get_ref(&'_ self) -> EntityRef<'_> {
@@ -66,7 +75,7 @@ impl BundleInspector {
         dst_entity: Entity,
         type_id: TypeId,
         src_component_id: ComponentId,
-    ) -> Result<(), MultiWorldCopyError> {
+    ) -> Result<&Self, MultiWorldCopyError> {
         let Some(existing_component_id) = dst_world.components().get_id(type_id) else {
             return Err(MultiWorldCopyError::Unregistered(type_id));
         };
@@ -80,11 +89,12 @@ impl BundleInspector {
             return Err(MultiWorldCopyError::UnCopyable(type_id));
         }
 
+        let Some(src) = self.world.get_by_id(self.scratch_entity, src_component_id) else {
+            return Err(MultiWorldCopyError::MissingSrcComponent(type_id));
+        };
+
         unsafe {
-            let src = self
-                .world
-                .get_by_id(self.scratch_entity, src_component_id)
-                .unwrap();
+            // SAFETY: Contract is required to be upheld by the world.
             let dst = alloc(component_info.layout());
 
             copy_nonoverlapping(src.as_ptr(), dst, component_info.layout().size());
@@ -92,11 +102,12 @@ impl BundleInspector {
             let owning = OwningPtr::new(NonNull::new(dst).unwrap());
 
             dst_world
-                .entity_mut(dst_entity)
+                .get_entity_mut(dst_entity)
+                .map_err(|_| MultiWorldCopyError::MissingDstEntity(dst_entity))?
                 .insert_by_id(existing_component_id, owning);
         }
 
-        Ok(())
+        Ok(self)
     }
 }
 
@@ -104,6 +115,8 @@ impl BundleInspector {
 pub enum MultiWorldCopyError {
     Unregistered(TypeId),
     UnCopyable(TypeId),
+    MissingDstEntity(Entity),
+    MissingSrcComponent(TypeId),
 }
 
 impl std::fmt::Display for MultiWorldCopyError {
@@ -111,11 +124,19 @@ impl std::fmt::Display for MultiWorldCopyError {
         match self {
             MultiWorldCopyError::Unregistered(type_id) => write!(
                 f,
-                "Component with type ID {type_id:?} has not been registered in the main world, and therefor cannot be inserted using merge mode."
+                "Component with type ID {type_id:?} has not been registered in the inspector world, and therefor cannot be inserted using merge mode."
             ),
             MultiWorldCopyError::UnCopyable(type_id) => write!(
                 f,
                 "Component with type ID {type_id:?} cannot be copied, and therefor cannot be inserted using merge mode."
+            ),
+            MultiWorldCopyError::MissingDstEntity(entity) => write!(
+                f,
+                "Entity {entity} does not exist in the destination world."
+            ),
+            MultiWorldCopyError::MissingSrcComponent(type_id) => write!(
+                f,
+                "Component with type ID {type_id:?} does not exist in inspector world, and therefor cannot be inserted using merge mode."
             ),
         }
     }
@@ -136,7 +157,9 @@ mod tests {
         let mode = EffectMode::Insert;
 
         assert_eq!(
-            inspector.get_effect_meta((name.clone(), mode)),
+            inspector
+                .stash_bundle((name.clone(), mode))
+                .get_effect_meta(),
             (Some(name), mode)
         );
     }
@@ -147,7 +170,7 @@ mod tests {
 
         let mode = EffectMode::Insert;
 
-        assert_eq!(inspector.get_effect_meta(mode), (None, mode));
+        assert_eq!(inspector.stash_bundle(mode).get_effect_meta(), (None, mode));
     }
 
     #[test]
@@ -157,7 +180,7 @@ mod tests {
         let name = Name::new("Effect");
 
         assert_eq!(
-            inspector.get_effect_meta(name.clone()),
+            inspector.stash_bundle(name.clone()).get_effect_meta(),
             (Some(name), EffectMode::default())
         );
     }
@@ -166,7 +189,10 @@ mod tests {
     fn get_effect_meta_nothing() {
         let mut inspector = BundleInspector::default();
 
-        assert_eq!(inspector.get_effect_meta(()), (None, EffectMode::default()));
+        assert_eq!(
+            inspector.stash_bundle(()).get_effect_meta(),
+            (None, EffectMode::default())
+        );
     }
 
     #[test]
@@ -177,11 +203,13 @@ mod tests {
         let mode = EffectMode::Insert;
 
         assert_eq!(
-            inspector.get_effect_meta((
-                name.clone(),
-                mode,
-                Effecting(Entity::from_raw_u32(32).unwrap())
-            )),
+            inspector
+                .stash_bundle((
+                    name.clone(),
+                    mode,
+                    Effecting(Entity::from_raw_u32(32).unwrap())
+                ))
+                .get_effect_meta(),
             (Some(name), mode)
         );
     }
