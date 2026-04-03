@@ -3,6 +3,7 @@ use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::{Bundle, Entity, EntityRef, Name, Resource, World};
 use bevy_ecs::ptr::OwningPtr;
 use bevy_ecs::relationship::RelationshipHookMode;
+use bevy_utils::prelude::DebugName;
 use std::alloc::alloc;
 use std::any::TypeId;
 use std::error::Error;
@@ -106,11 +107,13 @@ impl BundleInspector {
             .unwrap(); // Already checked that component is registered.
 
         if component_info.drop().is_some() {
-            return Err(MultiWorldCopyError::UnCopyable(type_id));
+            return Err(MultiWorldCopyError::UnCopyable(component_info.name()));
         }
 
         let Some(src) = self.world.get_by_id(self.scratch_entity, src_component_id) else {
-            return Err(MultiWorldCopyError::MissingSrcComponent(type_id));
+            return Err(MultiWorldCopyError::MissingSrcComponent(
+                component_info.name(),
+            ));
         };
 
         unsafe {
@@ -136,12 +139,12 @@ impl BundleInspector {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum MultiWorldCopyError {
     Unregistered(TypeId),
-    UnCopyable(TypeId),
+    UnCopyable(DebugName),
     MissingDstEntity(Entity),
-    MissingSrcComponent(TypeId),
+    MissingSrcComponent(DebugName),
 }
 
 impl std::fmt::Display for MultiWorldCopyError {
@@ -151,17 +154,17 @@ impl std::fmt::Display for MultiWorldCopyError {
                 f,
                 "Component with type ID {type_id:?} has not been registered in the inspector world, and therefor cannot be inserted using merge mode."
             ),
-            MultiWorldCopyError::UnCopyable(type_id) => write!(
+            MultiWorldCopyError::UnCopyable(name) => write!(
                 f,
-                "Component with type ID {type_id:?} cannot be copied, and therefor cannot be inserted using merge mode."
+                "Component {name} cannot be copied, and therefor cannot be inserted using merge mode.",
             ),
             MultiWorldCopyError::MissingDstEntity(entity) => write!(
                 f,
                 "Entity {entity} does not exist in the destination world."
             ),
-            MultiWorldCopyError::MissingSrcComponent(type_id) => write!(
+            MultiWorldCopyError::MissingSrcComponent(name) => write!(
                 f,
-                "Component with type ID {type_id:?} does not exist in inspector world, and therefor cannot be inserted using merge mode."
+                "Component {name} does not exist in inspector world, and therefor cannot be inserted using merge mode.",
             ),
         }
     }
