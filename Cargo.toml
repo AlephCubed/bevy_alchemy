@@ -68,3 +68,8 @@ harness = false
 name = "insert_mode"
 path = "benches/insert_mode.rs"
 harness = false
+
+[[bench]]
+name = "merge_mode"
+path = "benches/merge_mode.rs"
+harness = false
