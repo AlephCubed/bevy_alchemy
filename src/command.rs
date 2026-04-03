@@ -1,5 +1,5 @@
 use crate::bundle_inspector::BundleInspector;
-use crate::registry::{EffectMergeFn, EffectMergeRegistry};
+use crate::registry::EffectMergeRegistry;
 use crate::{EffectMode, EffectedBy, Effecting};
 use bevy_ecs::prelude::*;
 use bevy_log::{warn, warn_once};
@@ -17,58 +17,44 @@ pub struct AddEffectCommand<B: Bundle> {
 }
 
 impl<B: Bundle> AddEffectCommand<B> {
+    /// Returns the bundle with the relationship component.
     fn bundle_full(self) -> (Effecting, B) {
         (Effecting(self.target), self.bundle)
     }
 
+    /// Merges the [stashed bundle](Self::stash_bundle) with an entity from the given world.
+    /// This is done by calling the [`EffectMergeFn`] for all components in the [registry](EffectMergeRegistry).
+    /// Components not in the registry will be copied to the target entity.
     fn merge(self, world: &mut World, existing_entity: Entity) {
-        if !world.contains_resource::<EffectMergeRegistry>() {
-            warn_once!(
-                "No `EffectComponentMergeRegistry` found. Did you forget to add the `AlchemyPlugin`?"
-            );
-            return;
-        }
+        world
+            .try_resource_scope::<BundleInspector, ()>(|world, inspector| {
+                world.try_resource_scope::<EffectMergeRegistry, ()>(|world, registry| {
+                    for incoming_component_id in inspector.get_ref().archetype().components() {
+                        let type_id = inspector.get_type_id(*incoming_component_id).unwrap();
 
-        world.try_resource_scope::<BundleInspector, ()>(|world, inspector| {
-            world.try_resource_scope::<EffectMergeRegistry, ()>(|world, registry| {
-                let incoming = inspector.get_ref();
-
-                let merge_functions: Vec<EffectMergeFn> = incoming
-                    .archetype()
-                    .components()
-                    .iter()
-                    .filter_map(|incoming_component_id| {
-                        let type_id = inspector.get_type_id(*incoming_component_id)?;
-
-                        if let Some(merge_fn) = registry.merges.get(&type_id) {
-                            return Some(*merge_fn);
+                        if let Some(merge) = registry.merges.get(&type_id) {
+                            merge(&mut world.entity_mut(existing_entity), &inspector.get_ref());
+                            continue;
                         }
 
-                        _ = unsafe {
+                        unsafe {
                             // SAFETY: `incoming_component_id` `type_id` were extracted from the inspector.
-                            inspector
-                                .copy_to_world(
-                                    world,
-                                    existing_entity,
-                                    type_id,
-                                    *incoming_component_id,
-                                )
+                            _ = inspector.copy_to_world(world, existing_entity, type_id, *incoming_component_id)
                                 .inspect_err(|e| {
                                     warn!("{e}");
-                                })
-                        };
-
-                        None
-                    })
-                    .collect();
-
-                let mut existing = world.entity_mut(existing_entity);
-
-                for merge in merge_functions {
-                    merge(&mut existing, &incoming);
-                }
+                                });
+                        }
+                    }
+                })
+                .or_else(|| {
+                    warn_once!("No `EffectMergeRegistry` found. Did you forget to add the `AlchemyPlugin`?");
+                    None
+                });
+            })
+            .or_else(|| {
+                warn_once!("No `BundleInspector` found. Did you forget to add the `AlchemyPlugin`?");
+                None
             });
-        });
     }
 }
 
