@@ -17,7 +17,7 @@ use std::collections::HashMap;
 ///     new.get_mut::<MyEffect>().unwrap().0 += outgoing.0;
 /// }
 /// ```
-pub type EffectMergeFn = fn(new: EntityWorldMut, outgoing: Entity);
+pub type EffectMergeFn = fn(existing: &mut EntityWorldMut, incoming: &EntityRef);
 
 /// Stores the effect merge logic for each registered component.
 /// New components can be registered by providing a [`EffectMergeFn`] to the [`register`](EffectMergeRegistry::register) method.

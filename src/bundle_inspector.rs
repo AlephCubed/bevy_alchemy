@@ -1,6 +1,13 @@
 use crate::EffectMode;
-use bevy_ecs::prelude::{Bundle, Entity, Name, Resource, World};
+use bevy_ecs::component::ComponentId;
+use bevy_ecs::prelude::{Bundle, Entity, EntityRef, Name, Resource, World};
+use bevy_ecs::ptr::OwningPtr;
 use bevy_ecs::relationship::RelationshipHookMode;
+use std::alloc::alloc;
+use std::any::TypeId;
+use std::error::Error;
+use std::fmt::Formatter;
+use std::ptr::{NonNull, copy_nonoverlapping};
 
 #[derive(Resource)]
 pub(crate) struct BundleInspector {
@@ -35,11 +42,86 @@ impl BundleInspector {
             .copied()
             .unwrap_or_default();
 
-        self.world.entity_mut(e).clear();
-
         (name, mode)
     }
+
+    pub fn clear(&mut self) {
+        self.world.entity_mut(self.scratch_entity).clear();
+    }
+
+    pub fn get_ref(&'_ self) -> EntityRef<'_> {
+        self.world.entity(self.scratch_entity)
+    }
+
+    pub fn get_type_id(&self, component_id: ComponentId) -> Option<TypeId> {
+        self.world
+            .components()
+            .get_info(component_id)
+            .and_then(|info| info.type_id())
+    }
+
+    pub unsafe fn copy_to_world(
+        &self,
+        dst_world: &mut World,
+        dst_entity: Entity,
+        type_id: TypeId,
+        src_component_id: ComponentId,
+    ) -> Result<(), MultiWorldCopyError> {
+        let Some(existing_component_id) = dst_world.components().get_id(type_id) else {
+            return Err(MultiWorldCopyError::Unregistered(type_id));
+        };
+
+        let component_info = dst_world
+            .components()
+            .get_info(existing_component_id)
+            .unwrap();
+
+        if component_info.drop().is_some() {
+            return Err(MultiWorldCopyError::UnCopyable(type_id));
+        }
+
+        unsafe {
+            let src = self
+                .world
+                .get_by_id(self.scratch_entity, src_component_id)
+                .unwrap();
+            let dst = alloc(component_info.layout());
+
+            copy_nonoverlapping(src.as_ptr(), dst, component_info.layout().size());
+
+            let owning = OwningPtr::new(NonNull::new(dst).unwrap());
+
+            dst_world
+                .entity_mut(dst_entity)
+                .insert_by_id(existing_component_id, owning);
+        }
+
+        Ok(())
+    }
 }
+
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+pub enum MultiWorldCopyError {
+    Unregistered(TypeId),
+    UnCopyable(TypeId),
+}
+
+impl std::fmt::Display for MultiWorldCopyError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MultiWorldCopyError::Unregistered(type_id) => write!(
+                f,
+                "Component with type ID {type_id:?} has not been registered in the main world, and therefor cannot be inserted using merge mode."
+            ),
+            MultiWorldCopyError::UnCopyable(type_id) => write!(
+                f,
+                "Component with type ID {type_id:?} cannot be copied, and therefor cannot be inserted using merge mode."
+            ),
+        }
+    }
+}
+
+impl Error for MultiWorldCopyError {}
 
 #[cfg(test)]
 mod tests {

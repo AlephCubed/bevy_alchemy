@@ -34,7 +34,6 @@ immediate_stats = { version = "0.5.0", features = ["bevy_auto_plugin"] }
 [lints.rust]
 missing_docs = "warn"
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(docsrs_dep)'] }
-unsafe_code = "deny"
 unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 

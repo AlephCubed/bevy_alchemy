@@ -1,7 +1,7 @@
 use crate::EffectMergeRegistry;
 use bevy_app::{App, Plugin};
-use bevy_ecs::prelude::ReflectComponent;
-use bevy_ecs::prelude::{Component, Entity, EntityWorldMut};
+use bevy_ecs::prelude::{Component, EntityWorldMut};
+use bevy_ecs::prelude::{EntityRef, ReflectComponent};
 use bevy_reflect::Reflect;
 use bevy_reflect::prelude::ReflectDefault;
 use std::ops::{Add, AddAssign, Deref, DerefMut};
@@ -82,7 +82,7 @@ impl From<EffectStacks> for u8 {
 }
 
 /// A [merge function](crate::EffectMergeFn) for the [`EffectStacks`] component.
-pub fn merge_effect_stacks(mut new: EntityWorldMut, outgoing: Entity) {
-    let outgoing = *new.world().get::<EffectStacks>(outgoing).unwrap();
-    *new.get_mut::<EffectStacks>().unwrap() += outgoing.0;
+pub fn merge_effect_stacks(existing: &mut EntityWorldMut, incoming: &EntityRef) {
+    let incoming = incoming.get::<EffectStacks>().unwrap();
+    *existing.get_mut::<EffectStacks>().unwrap() += incoming.0;
 }

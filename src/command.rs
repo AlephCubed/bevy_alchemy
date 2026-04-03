@@ -1,10 +1,8 @@
 use crate::bundle_inspector::BundleInspector;
 use crate::registry::{EffectMergeFn, EffectMergeRegistry};
 use crate::{EffectMode, EffectedBy, Effecting};
-use bevy_ecs::entity_disabling::Disabled;
 use bevy_ecs::prelude::*;
-use bevy_log::warn_once;
-use std::any::TypeId;
+use bevy_log::{warn, warn_once};
 
 /// Applies an effect to a target entity.
 /// This *might* spawn a new entity, depending on what effects are already applied to the target.
@@ -38,51 +36,47 @@ impl<B: Bundle> AddEffectCommand<B> {
             return;
         }
 
-        // Copy existing mergeable components to a temporary entity.
-        let new_effect = existing_entity;
-        let old_effect = {
-            let registry = world.resource::<EffectMergeRegistry>();
-            let allow: Vec<TypeId> = registry.merges.keys().copied().collect();
+        world.try_resource_scope::<BundleInspector, ()>(|world, mut inspector| {
+            world.try_resource_scope::<EffectMergeRegistry, ()>(|world, registry| {
+                let incoming = inspector.get_ref();
 
-            let temp = world.spawn(Disabled).id();
-            world
-                .entity_mut(existing_entity)
-                .clone_with_opt_in(temp, |builder| {
-                    builder.without_required_components(|builder| {
-                        builder.allow_by_ids(allow);
-                    });
-                });
+                let merge_functions: Vec<EffectMergeFn> = incoming
+                    .archetype()
+                    .components()
+                    .iter()
+                    .filter_map(|incoming_component_id| {
+                        let type_id = inspector.get_type_id(*incoming_component_id)?;
 
-            temp
-        };
+                        if let Some(merge_fn) = registry.merges.get(&type_id) {
+                            return Some(*merge_fn);
+                        }
 
-        world.entity_mut(new_effect).insert(self.bundle);
+                        _ = unsafe {
+                            inspector
+                                .copy_to_world(
+                                    world,
+                                    existing_entity,
+                                    type_id,
+                                    *incoming_component_id,
+                                )
+                                .inspect_err(|e| {
+                                    warn!("{e}");
+                                })
+                        };
 
-        // Call merge function on those copied components.
-        {
-            let old = world.entity(old_effect);
-            let archetype = old.archetype();
+                        None
+                    })
+                    .collect();
 
-            let registry = world.resource::<EffectMergeRegistry>();
+                let mut existing = world.entity_mut(existing_entity);
 
-            let merge_functions: Vec<EffectMergeFn> = archetype
-                .components()
-                .iter()
-                .filter_map(|component_id| {
-                    world
-                        .components()
-                        .get_info(*component_id)
-                        .and_then(|info| info.type_id())
-                        .and_then(|id| registry.merges.get(&id).copied())
-                })
-                .collect();
+                for merge in merge_functions {
+                    merge(&mut existing, &incoming);
+                }
 
-            for merge in merge_functions {
-                merge(world.entity_mut(new_effect), old_effect);
-            }
-        }
-
-        world.despawn(old_effect);
+                inspector.clear();
+            });
+        });
     }
 }
 
