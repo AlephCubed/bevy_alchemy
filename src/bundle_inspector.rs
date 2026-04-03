@@ -27,6 +27,9 @@ impl Default for BundleInspector {
 }
 
 impl BundleInspector {
+    /// Stashes a bundle so it can be inspected.
+    ///
+    /// Should be [cleared](Self::clear) when finished.
     pub fn stash_bundle<B: Bundle>(&mut self, bundle: B) -> &mut Self {
         self.world
             .entity_mut(self.scratch_entity)
@@ -35,12 +38,14 @@ impl BundleInspector {
         self
     }
 
+    /// Clears the [stashed bundle](Self::stash_bundle).
     pub fn clear(&mut self) -> &mut Self {
         self.world.entity_mut(self.scratch_entity).clear();
 
         self
     }
 
+    /// Returns the [stashed bundle's](Self::stash_bundle) name and effect mode.
     pub fn get_effect_meta(&self) -> (Option<Name>, EffectMode) {
         let name = self
             .world
@@ -58,10 +63,13 @@ impl BundleInspector {
         (name, mode)
     }
 
+    /// Returns a reference to the [stashed bundle](Self::stash_bundle).
     pub fn get_ref(&'_ self) -> EntityRef<'_> {
         self.world.entity(self.scratch_entity)
     }
 
+    /// Converts a component ID to a type ID, if registered.
+    /// The component ID must be from the inspector's world, using [`get_type_id`](Self::get_type_id).
     pub fn get_type_id(&self, component_id: ComponentId) -> Option<TypeId> {
         self.world
             .components()
@@ -69,6 +77,18 @@ impl BundleInspector {
             .and_then(|info| info.type_id())
     }
 
+    /// Copies a component from the [stashed bundle](Self::stash_bundle) into an entity in a different world.
+    /// The component ID must be from the inspector's world, using [`get_type_id`](Self::get_type_id).
+    ///
+    /// # Errors
+    /// Will return an error if:
+    /// - The component has not been registered in `dst_world`.
+    /// - The component cannot be copied (implements drop).
+    /// - The stashed bundle doesn't contain the component.
+    /// - The destination entity doesn't exist in `dst_world`.
+    ///
+    /// # Safety
+    /// `src_component_id` must be for the same component as `type_id`.
     pub unsafe fn copy_to_world(
         &self,
         dst_world: &mut World,
@@ -83,7 +103,7 @@ impl BundleInspector {
         let component_info = dst_world
             .components()
             .get_info(existing_component_id)
-            .unwrap();
+            .unwrap(); // Already checked that component is registered.
 
         if component_info.drop().is_some() {
             return Err(MultiWorldCopyError::UnCopyable(type_id));
@@ -97,10 +117,15 @@ impl BundleInspector {
             // SAFETY: Contract is required to be upheld by the world.
             let dst = alloc(component_info.layout());
 
+            // SAFETY: `dst` is allocated from the component's layout.
+            // Both IDs provided by the caller must match, and `src` and `dst` obtained using the IDs.
+            // `src` and `dst` are from different worlds, so cannot overlap.
             copy_nonoverlapping(src.as_ptr(), dst, component_info.layout().size());
 
             let owning = OwningPtr::new(NonNull::new(dst).unwrap());
 
+            // SAFETY: `existing_component_id` is extracted from `dst_world`.
+            // Both IDs provided by the caller must match, `owning` was obtained using `src_component_id`.
             dst_world
                 .get_entity_mut(dst_entity)
                 .map_err(|_| MultiWorldCopyError::MissingDstEntity(dst_entity))?

@@ -21,13 +21,6 @@ impl<B: Bundle> AddEffectCommand<B> {
         (Effecting(self.target), self.bundle)
     }
 
-    /// Inserts into the existing entity, and then merges the old effect into it using [`EffectMergeRegistry`].
-    /// Only registered components that implement `Clone` will be merged.
-    /// ## Steps
-    /// 1. Copy unregistered components to a new temporary, disabled entity.
-    /// 2. Insert new components into the existing entity.
-    /// 3. Merge the old components (temp entity) with the new ones (existing entity).
-    /// 4. Despawn temp entity.
     fn merge(self, world: &mut World, existing_entity: Entity) {
         if !world.contains_resource::<EffectMergeRegistry>() {
             warn_once!(
@@ -52,6 +45,7 @@ impl<B: Bundle> AddEffectCommand<B> {
                         }
 
                         _ = unsafe {
+                            // SAFETY: `incoming_component_id` `type_id` were extracted from the inspector.
                             inspector
                                 .copy_to_world(
                                     world,

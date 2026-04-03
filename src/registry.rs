@@ -12,9 +12,9 @@ use std::collections::HashMap;
 /// #[derive(Component, Clone)]
 /// struct MyEffect(f32);
 ///
-/// fn merge_my_effect(mut new: EntityWorldMut, outgoing: Entity) {
-///     let outgoing = new.world().get::<MyEffect>(outgoing).unwrap().clone();
-///     new.get_mut::<MyEffect>().unwrap().0 += outgoing.0;
+/// fn merge_my_effect(existing: &mut EntityWorldMut, incoming: &EntityRef) {
+///     let incoming = incoming.get::<MyEffect>().unwrap();
+///     existing.get_mut::<MyEffect>().unwrap().0 += incoming.0;
 /// }
 /// ```
 pub type EffectMergeFn = fn(existing: &mut EntityWorldMut, incoming: &EntityRef);
@@ -37,9 +37,9 @@ pub type EffectMergeFn = fn(existing: &mut EntityWorldMut, incoming: &EntityRef)
 ///         .register::<MyEffect>(merge_my_effect);
 /// }
 ///
-/// fn merge_my_effect(mut new: EntityWorldMut, outgoing: Entity) {
-///     let outgoing = new.world().get::<MyEffect>(outgoing).unwrap().clone();
-///     new.get_mut::<MyEffect>().unwrap().0 += outgoing.0;
+/// fn merge_my_effect(existing: &mut EntityWorldMut, incoming: &EntityRef) {
+///     let incoming = incoming.get::<MyEffect>().unwrap();
+///     existing.get_mut::<MyEffect>().unwrap().0 += incoming.0;
 /// }
 /// ```
 #[derive(Resource, Default)]

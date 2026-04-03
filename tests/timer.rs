@@ -5,20 +5,19 @@ use std::time::Duration;
 
 #[test]
 fn merge_replace() {
-    let first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Replace);
+    let mut first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Replace);
     let second = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Replace);
-    let mut result = second.clone();
-    result.merge(&first);
+    first.merge(&second);
 
-    assert_eq!(result, second);
+    assert_eq!(first, second);
 }
 
 #[test]
 fn merge_keep() {
     let first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Keep);
     let second = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Keep);
-    let mut result = second.clone();
-    result.merge(&first);
+    let mut result = first.clone();
+    result.merge(&second);
 
     assert_eq!(result, first);
 }
@@ -27,8 +26,8 @@ fn merge_keep() {
 fn merge_fraction() {
     let first = Lifetime::from_seconds(1.0).with_mode(TimerMergeMode::Fraction);
     let second = Lifetime::from_seconds(2.0).with_mode(TimerMergeMode::Fraction);
-    let mut result = second.clone();
-    result.merge(&first);
+    let mut result = first.clone();
+    result.merge(&second);
 
     assert_eq!(result, second);
 }
