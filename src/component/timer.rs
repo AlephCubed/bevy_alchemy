@@ -24,8 +24,8 @@ impl Plugin for TimerPlugin {
 
 /// A [merge function](crate::EffectMergeFn) for [`EffectTimer`] components ([`Lifetime`] and [`Delay`]).
 pub fn merge_effect_timer<T: EffectTimer + Component<Mutability = Mutable>>(
-    existing: &mut EntityWorldMut,
-    incoming: &EntityRef,
+    mut existing: EntityWorldMut,
+    incoming: EntityRef,
 ) {
     let incoming = incoming.get::<T>().unwrap();
     existing.get_mut::<T>().unwrap().merge(incoming);

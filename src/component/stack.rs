@@ -82,7 +82,7 @@ impl From<EffectStacks> for u8 {
 }
 
 /// A [merge function](crate::EffectMergeFn) for the [`EffectStacks`] component.
-pub fn merge_effect_stacks(existing: &mut EntityWorldMut, incoming: &EntityRef) {
+pub fn merge_effect_stacks(mut existing: EntityWorldMut, incoming: EntityRef) {
     let incoming = incoming.get::<EffectStacks>().unwrap();
     *existing.get_mut::<EffectStacks>().unwrap() += incoming.0;
 }

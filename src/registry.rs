@@ -12,12 +12,12 @@ use std::collections::HashMap;
 /// #[derive(Component, Clone)]
 /// struct MyEffect(f32);
 ///
-/// fn merge_my_effect(existing: &mut EntityWorldMut, incoming: &EntityRef) {
+/// fn merge_my_effect(mut existing: EntityWorldMut, incoming: EntityRef) {
 ///     let incoming = incoming.get::<MyEffect>().unwrap();
 ///     existing.get_mut::<MyEffect>().unwrap().0 += incoming.0;
 /// }
 /// ```
-pub type EffectMergeFn = fn(existing: &mut EntityWorldMut, incoming: &EntityRef);
+pub type EffectMergeFn = fn(existing: EntityWorldMut, incoming: EntityRef);
 
 /// Stores the effect merge logic for each registered component.
 /// New components can be registered by providing a [`EffectMergeFn`] to the [`register`](EffectMergeRegistry::register) method.
@@ -37,7 +37,7 @@ pub type EffectMergeFn = fn(existing: &mut EntityWorldMut, incoming: &EntityRef)
 ///         .register::<MyEffect>(merge_my_effect);
 /// }
 ///
-/// fn merge_my_effect(existing: &mut EntityWorldMut, incoming: &EntityRef) {
+/// fn merge_my_effect(mut existing: EntityWorldMut, incoming: EntityRef) {
 ///     let incoming = incoming.get::<MyEffect>().unwrap();
 ///     existing.get_mut::<MyEffect>().unwrap().0 += incoming.0;
 /// }

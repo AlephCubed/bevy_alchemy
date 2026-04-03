@@ -33,8 +33,12 @@ impl<B: Bundle> AddEffectCommand<B> {
                         let type_id = inspector.get_type_id(*incoming_component_id).unwrap();
 
                         if let Some(merge) = registry.merges.get(&type_id) {
-                            merge(&mut world.entity_mut(existing_entity), &inspector.get_ref());
-                            continue;
+                            let entity_mut = world.entity_mut(existing_entity);
+
+                            if entity_mut.contains_type_id(type_id) {
+                                merge(entity_mut, inspector.get_ref());
+                                continue;
+                            }
                         }
 
                         unsafe {
@@ -46,10 +50,10 @@ impl<B: Bundle> AddEffectCommand<B> {
                         }
                     }
                 })
-                .or_else(|| {
-                    warn_once!("No `EffectMergeRegistry` found. Did you forget to add the `AlchemyPlugin`?");
-                    None
-                });
+                    .or_else(|| {
+                        warn_once!("No `EffectMergeRegistry` found. Did you forget to add the `AlchemyPlugin`?");
+                        None
+                    });
             })
             .or_else(|| {
                 warn_once!("No `BundleInspector` found. Did you forget to add the `AlchemyPlugin`?");
@@ -107,8 +111,6 @@ impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
             }
             EffectMode::Merge => self.merge(world, old_entity),
         }
-
-        world.resource_mut::<BundleInspector>().clear();
     }
 }
 

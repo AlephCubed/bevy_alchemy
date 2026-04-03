@@ -1,6 +1,8 @@
 use crate::EffectMode;
-use bevy_ecs::component::ComponentId;
-use bevy_ecs::prelude::{Bundle, Entity, EntityRef, Name, Resource, World};
+use bevy_ecs::component::{ComponentCloneBehavior, ComponentId};
+use bevy_ecs::prelude::{
+    AppTypeRegistry, Bundle, Entity, EntityRef, Name, ReflectComponent, Resource, World,
+};
 use bevy_ecs::ptr::OwningPtr;
 use bevy_ecs::relationship::RelationshipHookMode;
 use bevy_utils::prelude::DebugName;
@@ -32,6 +34,8 @@ impl BundleInspector {
     ///
     /// Should be [cleared](Self::clear) when finished.
     pub fn stash_bundle<B: Bundle>(&mut self, bundle: B) -> &mut Self {
+        self.clear();
+
         self.world
             .entity_mut(self.scratch_entity)
             .insert_with_relationship_hook_mode(bundle, RelationshipHookMode::Skip);
@@ -97,42 +101,60 @@ impl BundleInspector {
         type_id: TypeId,
         src_component_id: ComponentId,
     ) -> Result<&Self, MultiWorldCopyError> {
-        let Some(existing_component_id) = dst_world.components().get_id(type_id) else {
+        let Some(dst_component_id) = dst_world.components().get_id(type_id) else {
             return Err(MultiWorldCopyError::Unregistered(type_id));
         };
 
-        let component_info = dst_world
-            .components()
-            .get_info(existing_component_id)
-            .unwrap(); // Already checked that component is registered.
+        let component_info = dst_world.components().get_info(dst_component_id).unwrap(); // Already checked that component is registered.
 
-        if component_info.drop().is_some() {
-            return Err(MultiWorldCopyError::UnCopyable(component_info.name()));
+        match component_info.clone_behavior() {
+            ComponentCloneBehavior::Default | ComponentCloneBehavior::Custom(_) => {}
+            ComponentCloneBehavior::Ignore => {
+                return Err(MultiWorldCopyError::Uncloneable(component_info.name()));
+            }
         }
 
         let Some(src) = self.world.get_by_id(self.scratch_entity, src_component_id) else {
             return Err(MultiWorldCopyError::MissingSrcComponent(
                 component_info.name(),
+                self.scratch_entity,
             ));
         };
 
-        unsafe {
-            // SAFETY: Contract is required to be upheld by the world.
-            let dst = alloc(component_info.layout());
+        if component_info.drop().is_none() {
+            unsafe {
+                // SAFETY: Contract is required to be upheld by the world.
+                let dst = alloc(component_info.layout());
 
-            // SAFETY: `dst` is allocated from the component's layout.
-            // Both IDs provided by the caller must match, and `src` and `dst` obtained using the IDs.
-            // `src` and `dst` are from different worlds, so cannot overlap.
-            copy_nonoverlapping(src.as_ptr(), dst, component_info.layout().size());
+                // SAFETY: `dst` is allocated from the component's layout.
+                // Both IDs provided by the caller must match, and `src` and `dst` obtained using the IDs.
+                // `src` and `dst` are from different worlds, so cannot overlap.
+                copy_nonoverlapping(src.as_ptr(), dst, component_info.layout().size());
 
-            let owning = OwningPtr::new(NonNull::new(dst).unwrap());
+                let owning = OwningPtr::new(NonNull::new(dst).unwrap());
 
-            // SAFETY: `existing_component_id` is extracted from `dst_world`.
-            // Both IDs provided by the caller must match, `owning` was obtained using `src_component_id`.
-            dst_world
-                .get_entity_mut(dst_entity)
-                .map_err(|_| MultiWorldCopyError::MissingDstEntity(dst_entity))?
-                .insert_by_id(existing_component_id, owning);
+                // SAFETY: `existing_component_id` is extracted from `dst_world`.
+                // Both IDs provided by the caller must match, `owning` was obtained using `src_component_id`.
+                dst_world
+                    .get_entity_mut(dst_entity)
+                    .map_err(|_| MultiWorldCopyError::MissingDstEntity(dst_entity))?
+                    .insert_by_id(dst_component_id, owning);
+            }
+        } else {
+            let registry = dst_world.resource::<AppTypeRegistry>().clone();
+            let registry = registry.read();
+
+            let reflect_component = registry
+                .get_type_data::<ReflectComponent>(type_id)
+                .ok_or(MultiWorldCopyError::Uncloneable(component_info.name()))?;
+
+            reflect_component.copy(
+                &self.world,
+                dst_world,
+                self.scratch_entity,
+                dst_entity,
+                &registry,
+            );
         }
 
         Ok(self)
@@ -142,9 +164,9 @@ impl BundleInspector {
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum MultiWorldCopyError {
     Unregistered(TypeId),
-    UnCopyable(DebugName),
+    Uncloneable(DebugName),
     MissingDstEntity(Entity),
-    MissingSrcComponent(DebugName),
+    MissingSrcComponent(DebugName, Entity),
 }
 
 impl std::fmt::Display for MultiWorldCopyError {
@@ -152,19 +174,19 @@ impl std::fmt::Display for MultiWorldCopyError {
         match self {
             MultiWorldCopyError::Unregistered(type_id) => write!(
                 f,
-                "Component with type ID {type_id:?} has not been registered in the inspector world, and therefor cannot be inserted using merge mode."
+                "Component with {type_id:?} has not been registered in the destination world, and therefor cannot be cloned."
             ),
-            MultiWorldCopyError::UnCopyable(name) => write!(
+            MultiWorldCopyError::Uncloneable(name) => write!(
                 f,
-                "Component {name} cannot be copied, and therefor cannot be inserted using merge mode.",
+                "Component {name} cannot be cloned, and therefor cannot be inserted using merge mode.",
             ),
             MultiWorldCopyError::MissingDstEntity(entity) => write!(
                 f,
                 "Entity {entity} does not exist in the destination world."
             ),
-            MultiWorldCopyError::MissingSrcComponent(name) => write!(
+            MultiWorldCopyError::MissingSrcComponent(name, entity) => write!(
                 f,
-                "Component {name} does not exist in inspector world, and therefor cannot be inserted using merge mode.",
+                "Component {name} does not exist on the scratch entity {entity}, and therefor cannot be cloned.",
             ),
         }
     }
