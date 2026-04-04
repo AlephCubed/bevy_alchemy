@@ -5,6 +5,9 @@ use std::collections::HashMap;
 /// A function used to merge effects with [`EffectMode::Merge`](crate::EffectMode::Merge),
 /// which must be registered in the [registry](EffectMergeRegistry).
 ///
+/// The component the function is registered for is guaranteed to exist on both provided entities.
+/// Note that the incoming entity exists in a **separate world**.
+///
 /// # Example
 /// ```rust
 /// # use bevy_ecs::prelude::*;
@@ -13,8 +16,9 @@ use std::collections::HashMap;
 /// struct MyEffect(f32);
 ///
 /// fn merge_my_effect(mut existing: EntityWorldMut, incoming: EntityRef) {
+///     let mut existing = existing.get_mut::<MyEffect>().unwrap();
 ///     let incoming = incoming.get::<MyEffect>().unwrap();
-///     existing.get_mut::<MyEffect>().unwrap().0 += incoming.0;
+///     existing.0 += incoming.0;
 /// }
 /// ```
 pub type EffectMergeFn = fn(existing: EntityWorldMut, incoming: EntityRef);
@@ -38,8 +42,9 @@ pub type EffectMergeFn = fn(existing: EntityWorldMut, incoming: EntityRef);
 /// }
 ///
 /// fn merge_my_effect(mut existing: EntityWorldMut, incoming: EntityRef) {
+///     let mut existing = existing.get_mut::<MyEffect>().unwrap();
 ///     let incoming = incoming.get::<MyEffect>().unwrap();
-///     existing.get_mut::<MyEffect>().unwrap().0 += incoming.0;
+///     existing.0 += incoming.0;
 /// }
 /// ```
 #[derive(Resource, Default)]
