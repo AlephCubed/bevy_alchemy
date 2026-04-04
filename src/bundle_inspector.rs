@@ -87,9 +87,11 @@ impl BundleInspector {
     ///
     /// # Errors
     /// Will return an error if:
+    /// - The component is not registered in `dst_world`.
     /// - The component cannot be cloned ([`ComponentCloneBehavior::Ignore`]).
     /// - The stashed bundle doesn't contain the component.
     /// - The destination entity doesn't exist in `dst_world`.
+    /// - The resource AppTypeRegistry doesn't exist in `dst_world`.
     ///
     /// # Safety
     /// `src_component_id` must be for the same component as `type_id`.
@@ -100,8 +102,9 @@ impl BundleInspector {
         type_id: TypeId,
         src_component_id: ComponentId,
     ) -> Result<&Self, MultiWorldCopyError> {
-        //
-        let dst_component_id = dst_world.components().get_id(type_id).unwrap();
+        let Some(dst_component_id) = dst_world.components().get_id(type_id) else {
+            return Err(MultiWorldCopyError::Unregistered(type_id));
+        };
         let component_info = dst_world.components().get_info(dst_component_id).unwrap();
 
         match component_info.clone_behavior() {
@@ -124,21 +127,24 @@ impl BundleInspector {
                 let dst = alloc(component_info.layout());
 
                 // SAFETY: `dst` is allocated from the component's layout.
-                // Both IDs provided by the caller must match, and `src` and `dst` obtained using the IDs.
+                // Both IDs provided by the caller must match, and `src` and `dst` are obtained using those IDs.
                 // `src` and `dst` are from different worlds, so cannot overlap.
                 copy_nonoverlapping(src.as_ptr(), dst, component_info.layout().size());
 
+                // SAFETY: Both IDs provided by the caller must match, and `dst` was created from `src`.
                 let owning = OwningPtr::new(NonNull::new(dst).unwrap());
 
                 // SAFETY: `existing_component_id` is extracted from `dst_world`.
-                // Both IDs provided by the caller must match, `owning` was obtained using `src_component_id`.
+                // Both IDs provided by the caller must match, and `owning` was obtained using `src_component_id`.
                 dst_world
                     .get_entity_mut(dst_entity)
                     .map_err(|_| MultiWorldCopyError::MissingDstEntity(dst_entity))?
                     .insert_by_id(dst_component_id, owning);
             }
         } else {
-            let registry = dst_world.resource::<AppTypeRegistry>().clone();
+            let Some(registry) = dst_world.get_resource::<AppTypeRegistry>().cloned() else {
+                return Err(MultiWorldCopyError::MissingTypeRegistry);
+            };
             let registry = registry.read();
 
             let reflect_component = registry
@@ -160,14 +166,20 @@ impl BundleInspector {
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum MultiWorldCopyError {
+    Unregistered(TypeId),
     Uncloneable(DebugName),
     MissingDstEntity(Entity),
     MissingSrcComponent(DebugName, Entity),
+    MissingTypeRegistry,
 }
 
 impl std::fmt::Display for MultiWorldCopyError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            MultiWorldCopyError::Unregistered(type_id) => write!(
+                f,
+                "Component with {type_id:?} is not registered in the destination world, and therefor cannot be inserted using merge mode.",
+            ),
             MultiWorldCopyError::Uncloneable(name) => write!(
                 f,
                 "Component {name} cannot be cloned, and therefor cannot be inserted using merge mode.",
@@ -179,6 +191,10 @@ impl std::fmt::Display for MultiWorldCopyError {
             MultiWorldCopyError::MissingSrcComponent(name, entity) => write!(
                 f,
                 "Component {name} does not exist on the scratch entity {entity}, and therefor cannot be cloned.",
+            ),
+            MultiWorldCopyError::MissingTypeRegistry => write!(
+                f,
+                "Resource AppTypeRegistry does not exist in the destination world, and therefor no components can be cloned.",
             ),
         }
     }

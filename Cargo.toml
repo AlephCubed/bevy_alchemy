@@ -24,7 +24,7 @@ bevy_reflect = { version = "0.18", default-features = false }
 bevy_time = { version = "0.18", default-features = false, features = [
   "bevy_reflect",
 ] }
-bevy_utils = { version = "0.18.1", default-features = false }
+bevy_utils = { version = "0.18", default-features = false }
 
 [dev-dependencies]
 bevy = "0.18"
