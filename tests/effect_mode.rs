@@ -13,6 +13,7 @@ fn init_world() -> World {
 
     let mut registry = EffectMergeRegistry::default();
     registry
+        .register::<EffectStacks>(merge_effect_stacks)
         .register::<Lifetime>(merge_effect_timer::<Lifetime>)
         .register::<Delay>(merge_effect_timer::<Delay>);
 
@@ -101,6 +102,42 @@ fn mixed() {
     assert!(effects.contains(&1));
     assert!(!effects.contains(&2));
     assert!(effects.contains(&3));
+}
+
+#[test]
+fn effect_stacks_merge() {
+    let mut world = init_world();
+
+    let target = world.spawn_empty().id();
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        MyEffect(0),
+        EffectStacks::default(),
+    ));
+    world.commands().entity(target).with_effect((
+        EffectMode::Merge,
+        MyEffect(1),
+        EffectStacks::default(),
+        Delay::default(),
+    ));
+
+    world.flush();
+
+    // Component with merge function:
+    assert_eq!(
+        world.query::<&EffectStacks>().single(&world).unwrap(),
+        &EffectStacks(2),
+    );
+    // Component without, and already present on effect.
+    assert_eq!(
+        world.query::<&MyEffect>().single(&world).unwrap(),
+        &MyEffect(1)
+    );
+    // Component without, and not present on effect.
+    assert_eq!(
+        world.query::<&Delay>().single(&world).unwrap(),
+        &Delay::default()
+    )
 }
 
 #[test]
