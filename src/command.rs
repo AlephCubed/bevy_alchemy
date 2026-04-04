@@ -109,7 +109,11 @@ impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
             EffectMode::Insert => {
                 world.entity_mut(old_entity).insert(self.bundle);
             }
-            EffectMode::Merge => self.merge(world, old_entity),
+            EffectMode::Merge => {
+                // Ensure that all components are registered in the main world for cloning into.
+                world.register_bundle::<B>();
+                self.merge(world, old_entity)
+            }
         }
     }
 }

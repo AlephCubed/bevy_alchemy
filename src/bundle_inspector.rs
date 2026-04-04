@@ -32,7 +32,7 @@ impl Default for BundleInspector {
 impl BundleInspector {
     /// Stashes a bundle so it can be inspected.
     ///
-    /// Should be [cleared](Self::clear) when finished.
+    /// Calls [`clear`](Self::clear) first to avoid leakage.
     pub fn stash_bundle<B: Bundle>(&mut self, bundle: B) -> &mut Self {
         self.clear();
 
@@ -87,8 +87,7 @@ impl BundleInspector {
     ///
     /// # Errors
     /// Will return an error if:
-    /// - The component has not been registered in `dst_world`.
-    /// - The component cannot be copied (implements drop).
+    /// - The component cannot be cloned ([`ComponentCloneBehavior::Ignore`]).
     /// - The stashed bundle doesn't contain the component.
     /// - The destination entity doesn't exist in `dst_world`.
     ///
@@ -101,11 +100,9 @@ impl BundleInspector {
         type_id: TypeId,
         src_component_id: ComponentId,
     ) -> Result<&Self, MultiWorldCopyError> {
-        let Some(dst_component_id) = dst_world.components().get_id(type_id) else {
-            return Err(MultiWorldCopyError::Unregistered(type_id));
-        };
-
-        let component_info = dst_world.components().get_info(dst_component_id).unwrap(); // Already checked that component is registered.
+        //
+        let dst_component_id = dst_world.components().get_id(type_id).unwrap();
+        let component_info = dst_world.components().get_info(dst_component_id).unwrap();
 
         match component_info.clone_behavior() {
             ComponentCloneBehavior::Default | ComponentCloneBehavior::Custom(_) => {}
@@ -163,7 +160,6 @@ impl BundleInspector {
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum MultiWorldCopyError {
-    Unregistered(TypeId),
     Uncloneable(DebugName),
     MissingDstEntity(Entity),
     MissingSrcComponent(DebugName, Entity),
@@ -172,10 +168,6 @@ pub enum MultiWorldCopyError {
 impl std::fmt::Display for MultiWorldCopyError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            MultiWorldCopyError::Unregistered(type_id) => write!(
-                f,
-                "Component with {type_id:?} has not been registered in the destination world, and therefor cannot be cloned."
-            ),
             MultiWorldCopyError::Uncloneable(name) => write!(
                 f,
                 "Component {name} cannot be cloned, and therefor cannot be inserted using merge mode.",
