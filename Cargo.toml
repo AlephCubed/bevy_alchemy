@@ -1,6 +1,6 @@
 [package]
 name = "bevy_alchemy"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2024"
 description = "An experimental, status effects-as-entities system for Bevy."
 categories = ["game-development"]
@@ -19,11 +19,12 @@ bevy_app = { version = "0.18", default-features = false, features = [
 bevy_ecs = { version = "0.18", default-features = false, features = [
   "bevy_reflect",
 ] }
+bevy_log = { version = "0.18", default-features = false }
 bevy_reflect = { version = "0.18", default-features = false }
 bevy_time = { version = "0.18", default-features = false, features = [
   "bevy_reflect",
 ] }
-bevy_log = { version = "0.18", default-features = false }
+bevy_utils = { version = "0.18", default-features = false }
 
 [dev-dependencies]
 bevy = "0.18"
@@ -34,7 +35,6 @@ immediate_stats = { version = "0.5.0", features = ["bevy_auto_plugin"] }
 [lints.rust]
 missing_docs = "warn"
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(docsrs_dep)'] }
-unsafe_code = "deny"
 unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
@@ -67,4 +67,9 @@ harness = false
 [[bench]]
 name = "insert_mode"
 path = "benches/insert_mode.rs"
+harness = false
+
+[[bench]]
+name = "merge_mode"
+path = "benches/merge_mode.rs"
 harness = false

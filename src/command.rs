@@ -1,10 +1,8 @@
 use crate::bundle_inspector::BundleInspector;
-use crate::registry::{EffectMergeFn, EffectMergeRegistry};
+use crate::registry::EffectMergeRegistry;
 use crate::{EffectMode, EffectedBy, Effecting};
-use bevy_ecs::entity_disabling::Disabled;
 use bevy_ecs::prelude::*;
-use bevy_log::warn_once;
-use std::any::TypeId;
+use bevy_log::{warn, warn_once};
 
 /// Applies an effect to a target entity.
 /// This *might* spawn a new entity, depending on what effects are already applied to the target.
@@ -19,77 +17,57 @@ pub struct AddEffectCommand<B: Bundle> {
 }
 
 impl<B: Bundle> AddEffectCommand<B> {
+    /// Returns the bundle with the relationship component.
     fn bundle_full(self) -> (Effecting, B) {
         (Effecting(self.target), self.bundle)
     }
 
-    /// Inserts into the existing entity, and then merges the old effect into it using [`EffectMergeRegistry`].
-    /// Only registered components that implement `Clone` will be merged.
-    /// ## Steps
-    /// 1. Copy unregistered components to a new temporary, disabled entity.
-    /// 2. Insert new components into the existing entity.
-    /// 3. Merge the old components (temp entity) with the new ones (existing entity).
-    /// 4. Despawn temp entity.
+    /// Merges the [stashed bundle](Self::stash_bundle) with an entity from the given world.
+    /// This is done by calling the [`EffectMergeFn`] for all components in the [registry](EffectMergeRegistry).
+    /// Components not in the registry will be copied to the target entity.
     fn merge(self, world: &mut World, existing_entity: Entity) {
-        if !world.contains_resource::<EffectMergeRegistry>() {
-            warn_once!(
-                "No `EffectComponentMergeRegistry` found. Did you forget to add the `AlchemyPlugin`?"
-            );
-            return;
-        }
+        world
+            .try_resource_scope::<BundleInspector, ()>(|world, inspector| {
+                world.try_resource_scope::<EffectMergeRegistry, ()>(|world, registry| {
+                    for incoming_component_id in inspector.get_ref().archetype().components() {
+                        let type_id = inspector.get_type_id(*incoming_component_id).unwrap();
 
-        // Copy existing mergeable components to a temporary entity.
-        let new_effect = existing_entity;
-        let old_effect = {
-            let registry = world.resource::<EffectMergeRegistry>();
-            let allow: Vec<TypeId> = registry.merges.keys().copied().collect();
+                        if let Some(merge) = registry.merges.get(&type_id) {
+                            let entity_mut = world.entity_mut(existing_entity);
 
-            let temp = world.spawn(Disabled).id();
-            world
-                .entity_mut(existing_entity)
-                .clone_with_opt_in(temp, |builder| {
-                    builder.without_required_components(|builder| {
-                        builder.allow_by_ids(allow);
-                    });
-                });
+                            if entity_mut.contains_type_id(type_id) {
+                                merge(entity_mut, inspector.get_ref());
+                                continue;
+                            }
+                        }
 
-            temp
-        };
-
-        world.entity_mut(new_effect).insert(self.bundle);
-
-        // Call merge function on those copied components.
-        {
-            let old = world.entity(old_effect);
-            let archetype = old.archetype();
-
-            let registry = world.resource::<EffectMergeRegistry>();
-
-            let merge_functions: Vec<EffectMergeFn> = archetype
-                .components()
-                .iter()
-                .filter_map(|component_id| {
-                    world
-                        .components()
-                        .get_info(*component_id)
-                        .and_then(|info| info.type_id())
-                        .and_then(|id| registry.merges.get(&id).copied())
+                        unsafe {
+                            // SAFETY: `incoming_component_id` `type_id` were extracted from the inspector.
+                            _ = inspector.copy_to_world(world, existing_entity, type_id, *incoming_component_id)
+                                .inspect_err(|e| {
+                                    warn!("{e}");
+                                });
+                        }
+                    }
                 })
-                .collect();
-
-            for merge in merge_functions {
-                merge(world.entity_mut(new_effect), old_effect);
-            }
-        }
-
-        world.despawn(old_effect);
+                    .or_else(|| {
+                        warn_once!("No `EffectMergeRegistry` found. Did you forget to add the `AlchemyPlugin`?");
+                        None
+                    });
+            })
+            .or_else(|| {
+                warn_once!("No `BundleInspector` found. Did you forget to add the `AlchemyPlugin`?");
+                None
+            });
     }
 }
 
 impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
     fn apply(self, world: &mut World) {
         let mut inspector = world.get_resource_or_init::<BundleInspector>();
-        let (name, mode) = inspector.get_effect_meta(self.bundle.clone());
+        let (name, mode) = inspector
+            .stash_bundle(self.bundle.clone())
+            .get_effect_meta();
 
         if mode == EffectMode::Stack {
             world.spawn(self.bundle_full());
@@ -131,7 +109,11 @@ impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
             EffectMode::Insert => {
                 world.entity_mut(old_entity).insert(self.bundle);
             }
-            EffectMode::Merge => self.merge(world, old_entity),
+            EffectMode::Merge => {
+                // Ensure that all components are registered in the main world for cloning into.
+                world.register_bundle::<B>();
+                self.merge(world, old_entity)
+            }
         }
     }
 }

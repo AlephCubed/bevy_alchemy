@@ -2,11 +2,12 @@ use crate::ReflectComponent;
 use crate::registry::EffectMergeRegistry;
 use bevy_app::{App, Plugin, PreUpdate};
 use bevy_ecs::component::Mutable;
-use bevy_ecs::prelude::{Commands, Component, Entity, Query, Res};
+use bevy_ecs::prelude::{Commands, Component, Entity, EntityRef, Query, Res};
 use bevy_ecs::schedule::IntoScheduleConfigs;
 use bevy_ecs::world::EntityWorldMut;
 use bevy_reflect::Reflect;
 use bevy_time::{Time, Timer, TimerMode};
+use std::fmt::Debug;
 use std::time::Duration;
 
 pub(crate) struct TimerPlugin;
@@ -22,16 +23,16 @@ impl Plugin for TimerPlugin {
 }
 
 /// A [merge function](crate::EffectMergeFn) for [`EffectTimer`] components ([`Lifetime`] and [`Delay`]).
-pub fn merge_effect_timer<T: EffectTimer + Component<Mutability = Mutable> + Clone>(
-    mut new: EntityWorldMut,
-    outgoing: Entity,
+pub fn merge_effect_timer<T: EffectTimer + Component<Mutability = Mutable>>(
+    mut existing: EntityWorldMut,
+    incoming: EntityRef,
 ) {
-    let outgoing = new.world().get::<T>(outgoing).unwrap().clone();
-    new.get_mut::<T>().unwrap().merge(&outgoing);
+    let incoming = incoming.get::<T>().unwrap();
+    existing.get_mut::<T>().unwrap().merge(incoming);
 }
 
 /// A [timer](Timer) which is used for status effects and includes a [`TimerMergeMode`].
-pub trait EffectTimer: Sized {
+pub trait EffectTimer: Clone {
     /// Creates a new timer from a duration.
     fn new(duration: Duration) -> Self;
 
@@ -59,24 +60,27 @@ pub trait EffectTimer: Sized {
     /// Behaviour depends on the current [`TimerMergeMode`].
     fn merge(&mut self, incoming: &Self) {
         match self.get_mode() {
-            TimerMergeMode::Replace => {}
-            TimerMergeMode::Keep => *self.get_timer_mut() = incoming.get_timer().clone(),
+            TimerMergeMode::Replace => self.clone_from(incoming),
+            TimerMergeMode::Keep => {}
             TimerMergeMode::Fraction => {
-                let fraction = incoming.get_timer().fraction();
-                let duration = self.get_timer().duration().as_secs_f32();
+                let fraction = self.get_timer().fraction();
+                let duration = incoming.get_timer().duration().as_secs_f32();
+
+                self.clone_from(incoming);
                 self.get_timer_mut()
                     .set_elapsed(Duration::from_secs_f32(fraction * duration));
             }
             TimerMergeMode::Max => {
-                let old = incoming.get_timer().remaining_secs();
-                let new = self.get_timer().remaining_secs();
+                let old = self.get_timer().remaining_secs();
+                let new = incoming.get_timer().remaining_secs();
 
-                if old > new {
-                    *self.get_timer_mut() = incoming.get_timer().clone();
+                if new > old {
+                    self.clone_from(incoming);
                 }
             }
             TimerMergeMode::Sum => {
-                let duration = incoming.get_timer().duration() + self.get_timer().duration();
+                let duration = self.get_timer().duration() + incoming.get_timer().duration();
+                self.clone_from(incoming);
                 self.get_timer_mut().set_duration(duration);
             }
         }

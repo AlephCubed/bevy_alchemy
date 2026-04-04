@@ -5,6 +5,9 @@ use std::collections::HashMap;
 /// A function used to merge effects with [`EffectMode::Merge`](crate::EffectMode::Merge),
 /// which must be registered in the [registry](EffectMergeRegistry).
 ///
+/// The component the function is registered for is guaranteed to exist on both provided entities.
+/// Note that the incoming entity exists in a **separate world**.
+///
 /// # Example
 /// ```rust
 /// # use bevy_ecs::prelude::*;
@@ -12,12 +15,13 @@ use std::collections::HashMap;
 /// #[derive(Component, Clone)]
 /// struct MyEffect(f32);
 ///
-/// fn merge_my_effect(mut new: EntityWorldMut, outgoing: Entity) {
-///     let outgoing = new.world().get::<MyEffect>(outgoing).unwrap().clone();
-///     new.get_mut::<MyEffect>().unwrap().0 += outgoing.0;
+/// fn merge_my_effect(mut existing: EntityWorldMut, incoming: EntityRef) {
+///     let mut existing = existing.get_mut::<MyEffect>().unwrap();
+///     let incoming = incoming.get::<MyEffect>().unwrap();
+///     existing.0 += incoming.0;
 /// }
 /// ```
-pub type EffectMergeFn = fn(new: EntityWorldMut, outgoing: Entity);
+pub type EffectMergeFn = fn(existing: EntityWorldMut, incoming: EntityRef);
 
 /// Stores the effect merge logic for each registered component.
 /// New components can be registered by providing a [`EffectMergeFn`] to the [`register`](EffectMergeRegistry::register) method.
@@ -37,9 +41,10 @@ pub type EffectMergeFn = fn(new: EntityWorldMut, outgoing: Entity);
 ///         .register::<MyEffect>(merge_my_effect);
 /// }
 ///
-/// fn merge_my_effect(mut new: EntityWorldMut, outgoing: Entity) {
-///     let outgoing = new.world().get::<MyEffect>(outgoing).unwrap().clone();
-///     new.get_mut::<MyEffect>().unwrap().0 += outgoing.0;
+/// fn merge_my_effect(mut existing: EntityWorldMut, incoming: EntityRef) {
+///     let mut existing = existing.get_mut::<MyEffect>().unwrap();
+///     let incoming = incoming.get::<MyEffect>().unwrap();
+///     existing.0 += incoming.0;
 /// }
 /// ```
 #[derive(Resource, Default)]
@@ -48,7 +53,7 @@ pub struct EffectMergeRegistry {
 }
 
 impl EffectMergeRegistry {
-    /// Registers a [`EffectMergeFn`] to be run whenever two `T` status effects are merged.
+    /// Registers a [`EffectMergeFn`] to be run whenever two `T` status effect components are merged.
     pub fn register<T: Component + Clone>(&mut self, f: EffectMergeFn) -> &mut Self {
         self.merges.insert(TypeId::of::<T>(), f);
         self
