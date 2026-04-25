@@ -5,7 +5,7 @@ edition = "2024"
 description = "An experimental, status effects-as-entities system for Bevy."
 categories = ["game-development"]
 keywords = ["game", "gamedev", "bevy", "status", "effect"]
-repository = "https://github.com/AlephCubed/bevy_alchemy"
+repository = "https://tangled.org/alephcubed.com/bevy_alchemy"
 license = "MIT OR Apache-2.0"
 authors = ["AlephCubed"]
 
