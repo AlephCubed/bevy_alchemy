@@ -63,6 +63,8 @@ impl<B: Bundle> AddEffectCommand<B> {
 }
 
 impl<B: Bundle + Clone> Command for AddEffectCommand<B> {
+    type Out = ();
+
     fn apply(self, world: &mut World) {
         let mut inspector = world.get_resource_or_init::<BundleInspector>();
         let (name, mode) = inspector
