@@ -7,11 +7,16 @@
 An experimental, status effects-as-entities system for Bevy.
 
 ### Applying Effects
-Effects can be applied using `with_effect` or `with_effects` (similar to `with_child` and `with_children` respectively).
+
+Effects can be applied using `with_effect` or `with_effects`
+(similar to `with_child` and `with_children` respectively).
+
 ```rust ignore
 commands.entity(target).with_effect((Name::new("Effect"), MyEffect));
 ```
+
 They can also be added using spawn-style syntax.
+
 ```rust ignore
 commands.spawn((
     Name::new("Target"),
@@ -21,12 +26,17 @@ commands.spawn((
 ));
 ```
 
-Note that these methods *might* spawn a new entity, depending on what effects are already applied to the target.
+Note that these methods *might* spawn a new entity,
+depending on what effects are already applied to the target.
 
 ### Effect Modes
-For some effects it makes sense to allow stacking, so a single entity could be effected by an effect multiple times.
-Other effects should only be applied once, either replacing or merging with the previous one. 
-This behaviour can be selected using an effect's `MergeMode`, which has the following cases:
+
+For some effects it makes sense to allow stacking,
+so a single entity could be effected by an effect multiple times.
+Other effects should only be applied once,
+either replacing or merging with the previous one.
+This behaviour can be selected using an effect's `MergeMode`,
+which has the following cases:
 
 | Mode   | Behaviour                                                                               |
 |--------|-----------------------------------------------------------------------------------------|
@@ -37,7 +47,10 @@ This behaviour can be selected using an effect's `MergeMode`, which has the foll
 Effects are considered the same if they have the same name.
 
 ### Implementing Effects
-Effects can be implemented using simple systems. Below is an excerpt from the poison example.
+
+Effects can be implemented using simple systems.
+Below is an excerpt from the poison example.
+
 ```rust ignore
 /// Runs every frame and deals the poison damage.
 fn deal_poison_damage(
@@ -62,7 +75,9 @@ fn deal_poison_damage(
 ```
 
 ### Utility Components
-A handful of components are included that are intended to make it easier to create common effects.
+
+A handful of components are included that are intended to
+make it easier to create common effects.
 
 | Component      | Description                                                                   |
 |----------------|-------------------------------------------------------------------------------|
